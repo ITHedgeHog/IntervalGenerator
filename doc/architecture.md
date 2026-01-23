@@ -209,8 +209,8 @@
 ## Technical Specifications
 
 ### .NET Version
-- Target: .NET 8.0 (LTS)
-- Language: C# 12
+- Target: .NET 10 (LTS)
+- Language: C# 14
 
 ### Project Structure
 ```
@@ -323,8 +323,8 @@ FinalConsumption = BaseLoad
 
 ## Technology Stack
 
-- **Framework**: .NET 8.0
-- **Language**: C# 12
+- **Framework**: .NET 10
+- **Language**: C# 14
 - **CLI**: System.CommandLine
 - **Testing**: xUnit, FluentAssertions, NSubstitute
 - **CSV**: CsvHelper

@@ -66,8 +66,8 @@ Create a .NET-based smart meter interval generator that produces realistic energ
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Framework | .NET 8.0 | LTS support, modern features |
-| Language | C# 12 | Latest language features |
+| Framework | .NET 10 | Latest LTS, long-term support |
+| Language | C# 14 | Latest language features |
 | Target API | Electralink EAC | Energy Account Centre for smart meters |
 | API Endpoints | /v2/mpanhhperperiod, /v2/mpanadditionaldetails | Primary data endpoints |
 | Response Formats | HHPerPeriod, EacAdditionalDetailsV2 | Electralink schemas |

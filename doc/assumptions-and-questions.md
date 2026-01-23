@@ -26,9 +26,9 @@
 ### Technical Assumptions
 
 1. **Target Framework**
-   - Assumption: Using .NET 8.0 (current LTS version)
-   - Rationale: Provides long-term support and modern C# features
-   - Question: Is there a requirement for .NET Framework compatibility or specific .NET version?
+   - Assumption: Using .NET 10 (current LTS version)
+   - Rationale: Provides long-term support and latest C# 14 features
+   - **DECIDED**: .NET 10 LTS
 
 2. **Interval Alignment**
    - Assumption: Intervals align to standard boundaries (e.g., 00:00, 00:15, 00:30, 00:45 for 15-min intervals)
@@ -234,7 +234,7 @@
 
 | Date | Question | Decision | Rationale |
 |------|----------|----------|-----------|
-| 2026-01-23 | .NET Version | .NET 8.0 | LTS support, modern features |
+| 2026-01-23 | .NET Version | .NET 10 | Latest LTS, C# 14 features |
 | 2026-01-23 | Primary Output | CSV + JSON | Common formats, easy to parse |
 | 2026-01-23 | CLI Framework | System.CommandLine | Official Microsoft library |
 | 2026-01-23 | Meter ID Format | GUID (Globally Unique ID) | Ensures uniqueness, industry standard |
