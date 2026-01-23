@@ -1,26 +1,23 @@
 # Assumptions and Questions
 
-## ⚠️ CRITICAL INFORMATION NEEDED
+## ✅ 3rd Party API Format - RESOLVED
 
-### 3rd Party API Format Details
+**API Provider**: Electralink EAC (Energy Account Centre)
 
-**The project aims to be a drop-in replacement for a 3rd party API. We need the following information:**
+**Target Endpoints**:
+- `/v2/mpanhhperperiod` - Half-hourly consumption per measurement class
+- `/v2/mpanadditionaldetails` - Meter metadata and address details
+- `/v1/filteredmpanhhbyperiod` - Filtered historical data
 
-1. **API Name/Provider**: Which specific 3rd party service are we replacing?
-2. **Documentation**: Link to API documentation or examples
-3. **Data Format**:
-   - Field names and data types
-   - Date/time format (ISO 8601, Unix timestamp, etc.)
-   - Required vs optional fields
-   - Any metadata fields
-4. **Output Structure**:
-   - Single file or multiple files?
-   - Nested JSON structure or flat?
-   - CSV column order and headers?
-5. **Authentication/Headers**: Any specific headers or metadata in output?
-6. **Compatibility Requirements**: Do we need to expose REST endpoints, or just match the data format?
+**Key Specifications**:
+- Response formats: JSON and CSV
+- MPAN format: 13-digit meter identifier
+- Period range: 1-48 (30-minute intervals) or 1-96 (15-minute intervals)
+- Consumption unit: kWh with 2 decimal places
+- Status flags: A (Actual), E (Estimated), M (Missing), X (Corrected)
+- Measurement classes: AI (Active Import), AE (Active Export), RI/RE (Reactive)
 
-**Impact**: This information will affect data models, output formatters, and validation logic. We can proceed with core development, but output format design is blocked until this is clarified.
+**Detailed Specification**: See `doc/electralink-api-specification.md`
 
 ---
 

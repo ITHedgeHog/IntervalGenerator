@@ -114,20 +114,27 @@
 ### 4. Output Formatters (`IntervalGenerator.Output`)
 
 **Responsibilities:**
-- Format and export generated data in various formats
+- Format and export generated data in Electralink API formats
 - Support streaming for large multi-meter datasets
-- Future: Match 3rd party API format specification
+- Implement exact Electralink response schemas (HHPerPeriod, EacAdditionalDetailsV2)
 
 **Key Classes:**
 ```csharp
 - IOutputFormatter (interface)
-- CsvOutputFormatter
-- JsonOutputFormatter
-- ConsoleOutputFormatter
+- ElectraLinkJsonFormatter
+  - HHPerPeriodFormatter (nested MC/date/period structure)
+  - EacAdditionalDetailsV2Formatter
+  - YearlyHHByPeriodFormatter
+- ElectraLinkCsvFormatter
+  - Flattened CSV structure
 - StreamingOutputWriter // For efficient large-dataset output
 ```
 
-**Note:** Output format structure will be finalized once 3rd party API specification is provided. Current implementation will use placeholder format that can be easily adapted.
+**Output Formats:**
+- **JSON**: Nested structure matching Electralink HHPerPeriod schema
+- **CSV**: Flattened format with MPAN, MeasurementClass, Date, Period, HHC columns
+
+**Reference:** See `doc/electralink-api-specification.md` for detailed response structures.
 
 ### 5. CLI Application (`IntervalGenerator.Cli`)
 

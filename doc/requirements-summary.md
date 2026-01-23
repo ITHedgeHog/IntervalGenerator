@@ -21,41 +21,21 @@ Create a .NET-based smart meter interval generator that produces realistic energ
 - ✅ JSON format
 - ✅ No database integration in v1
 
+#### Drop-In API Replacement
+- ✅ **Electralink EAC API** - Confirmed target
+  - `/v2/mpanhhperperiod` endpoint (HHPerPeriod format)
+  - `/v2/mpanadditionaldetails` endpoint (EacAdditionalDetailsV2 format)
+  - `/v1/filteredmpanhhbyperiod` endpoint (YearlyHHByPeriodOutput format)
+- ✅ JSON output format with nested MC/date/period structure
+- ✅ CSV output with flattened structure
+- ✅ MPAN-based meter identification (13-digit numeric ID)
+- ✅ Period-based interval representation (1-48 for 30min, 1-96 for 15min)
+
 ### Future Enhancements (vNext)
 - 📋 Custom user-defined profiles
-- 📋 3rd party API format compatibility (specific format TBD)
-- 📋 REST API exposure
-
-## Critical Information Needed
-
-### 🚨 BLOCKING: 3rd Party API Specification
-
-To ensure this is a true drop-in replacement, we need:
-
-1. **API Provider Name**: Which service are we replacing?
-2. **Documentation**: Links or examples of the API output
-3. **Exact Field Specifications**:
-   - Field names (e.g., "timestamp" vs "readingTime" vs "intervalEnd")
-   - Data types and formats
-   - Required vs optional fields
-   - Metadata fields (if any)
-4. **Format Examples**:
-   ```json
-   // Example needed
-   {
-     "?": "?",
-     "?": "?"
-   }
-   ```
-   ```csv
-   // Example needed
-   ?,?,?
-   ```
-5. **Special Requirements**:
-   - Specific date/time formatting
-   - Units and precision
-   - Headers or metadata
-   - File naming conventions
+- 📋 REST API exposure for on-demand generation
+- 📋 XML output format
+- 📋 Additional measurement classes (AE, RI, RE)
 
 ## Open Questions (Non-Blocking)
 
@@ -88,25 +68,38 @@ To ensure this is a true drop-in replacement, we need:
 |----------|--------|-----------|
 | Framework | .NET 8.0 | LTS support, modern features |
 | Language | C# 12 | Latest language features |
-| Meter IDs | GUIDs | Uniqueness guarantee |
-| Output Formats | CSV + JSON | Universal compatibility |
+| Target API | Electralink EAC | Energy Account Centre for smart meters |
+| API Endpoints | /v2/mpanhhperperiod, /v2/mpanadditionaldetails | Primary data endpoints |
+| Response Formats | HHPerPeriod, EacAdditionalDetailsV2 | Electralink schemas |
+| Meter IDs | GUIDs (internal) → MPAN (output) | Uniqueness + Electralink compatibility |
+| Output Formats | CSV + JSON | Electralink compatibility |
 | CLI Framework | System.CommandLine | Official Microsoft tool |
 | Profile Customization | Hard-coded (v1) | Simplicity, vNext enhancement |
 | Multi-Meter Limit | 1000 per run | Balance performance/utility |
 
 ## Success Criteria
 
-### Phase 1
-- Generate intervals for all core business types
-- Support both 15 and 30-minute periods
-- Deterministic and non-deterministic modes working
-- Multi-meter generation (up to 1000)
-- CSV and JSON output
+### Phase 1: Core Generation Engine
+- ✅ Generate intervals for all core business types
+- ✅ Support both 15 and 30-minute periods
+- ✅ Deterministic and non-deterministic modes working
+- ✅ Multi-meter generation (up to 1000)
+- ✅ Consume Electralink OpenAPI spec
 
-### Phase 2 (Post API Specification)
-- Match 3rd party API format exactly
-- Pass compatibility tests
-- Validation with real-world use cases
+### Phase 2: Electralink API Compatibility
+- Output matches HHPerPeriod JSON schema exactly
+- Output matches EacAdditionalDetailsV2 schema
+- CSV format with correct column mapping
+- MPAN derivation from GUID
+- Period numbering (1-48 or 1-96)
+- Consumption values (hhc) in kWh with 2 decimals
+- Status flags (aei) implementation
+- Multi-meter output with unique MPANs
+
+### Phase 3: Validation & Integration
+- Parse generated output with Electralink API schema validators
+- Integration tests with Electralink staging endpoints
+- Real-world use case validation
 
 ## Risk Assessment
 
