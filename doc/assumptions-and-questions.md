@@ -1,5 +1,29 @@
 # Assumptions and Questions
 
+## ⚠️ CRITICAL INFORMATION NEEDED
+
+### 3rd Party API Format Details
+
+**The project aims to be a drop-in replacement for a 3rd party API. We need the following information:**
+
+1. **API Name/Provider**: Which specific 3rd party service are we replacing?
+2. **Documentation**: Link to API documentation or examples
+3. **Data Format**:
+   - Field names and data types
+   - Date/time format (ISO 8601, Unix timestamp, etc.)
+   - Required vs optional fields
+   - Any metadata fields
+4. **Output Structure**:
+   - Single file or multiple files?
+   - Nested JSON structure or flat?
+   - CSV column order and headers?
+5. **Authentication/Headers**: Any specific headers or metadata in output?
+6. **Compatibility Requirements**: Do we need to expose REST endpoints, or just match the data format?
+
+**Impact**: This information will affect data models, output formatters, and validation logic. We can proceed with core development, but output format design is blocked until this is clarified.
+
+---
+
 ## Assumptions
 
 ### Technical Assumptions
@@ -25,9 +49,9 @@
    - Question: What are the maximum expected data volumes?
 
 5. **Meter ID Format**
-   - Assumption: Meter IDs are string-based and user-provided or auto-generated
-   - Rationale: Flexible for different meter numbering schemes
-   - Question: Are there specific meter ID format requirements or validation rules?
+   - Assumption: Meter IDs are GUIDs (Globally Unique Identifiers)
+   - Rationale: Ensures uniqueness across all generated meters
+   - **DECIDED**: Each meter will have a unique GUID in the output to identify itself
 
 ### Business Logic Assumptions
 
@@ -79,12 +103,13 @@
 
 13. **Output Formats**
     - Assumption: CSV and JSON are primary output formats
-    - CSV Format:
+    - **DECIDED**: CSV and JSON only for initial release
+    - Placeholder CSV Format (subject to 3rd party API requirements):
       ```
       Timestamp,MeterId,ConsumptionKwh,BusinessType
-      2024-01-01T00:00:00Z,METER001,125.5,Office
+      2024-01-01T00:00:00Z,550e8400-e29b-41d4-a716-446655440000,125.5,Office
       ```
-    - Question: Are there specific CSV column requirements or header formats?
+    - **PENDING**: Exact format will be determined by 3rd party API specification
 
 14. **Precision**
     - Assumption: Consumption values rounded to 2 decimal places
@@ -98,27 +123,41 @@
 
 ## Open Questions
 
+### CRITICAL - Requires Immediate Clarification
+
+1. **3rd Party API Format** ⚠️ BLOCKING
+   - Which 3rd party API format should we match?
+   - What is the exact data structure, field names, and conventions?
+   - Do we need to expose a REST API, or just match their output format?
+   - Where can we find documentation/examples of their format?
+   - **Impact**: This affects core data models, output formatters, and potentially architecture
+
 ### Requirements Clarification
 
-1. **Profile Customization**
-   - Can users define custom business profiles via configuration files (JSON/YAML)?
-   - Or should all profiles be hard-coded initially?
-
-2. **API Requirements**
-   - Is a REST API required for the initial release?
-   - Or is a CLI tool sufficient?
-
-3. **Database Integration**
-   - Do we need direct database output (SQL Server, PostgreSQL, etc.)?
-   - Or is file-based output sufficient?
-
-4. **Validation Requirements**
+2. **Validation Requirements**
    - Should the generator validate that output matches expected totals?
    - Should it provide statistics (min, max, average, total consumption)?
 
-5. **Multi-Meter Support**
-   - Should a single generation run support multiple meters simultaneously?
-   - Or one meter per execution?
+3. **Historical Accuracy**
+   - Do generated patterns need to match historical weather data?
+   - Or are generic seasonal patterns acceptable?
+
+### ✅ ANSWERED Questions
+
+4. **Profile Customization** ✅
+   - **DECIDED**: Custom profiles are vNext (next version) - hard-coded profiles for initial release
+
+5. **API Requirements** ✅
+   - **DECIDED**: 3rd party API format to be adopted in subsequent phases
+   - CLI tool is primary interface for initial release
+
+6. **Database Integration** ✅
+   - **DECIDED**: CSV and JSON output only for initial release
+   - No database integration needed initially
+
+7. **Multi-Meter Support** ✅
+   - **DECIDED**: Yes, support generating up to 1000 meters per run
+   - Each meter identified by unique GUID
 
 6. **Historical Accuracy**
    - Do generated patterns need to match historical weather data?
@@ -196,29 +235,36 @@
 
 ## Decision Log
 
-*This section will be updated as decisions are made*
-
 | Date | Question | Decision | Rationale |
 |------|----------|----------|-----------|
-| TBD  | .NET Version | .NET 8.0 | LTS support, modern features |
-| TBD  | Primary Output | CSV + JSON | Common formats, easy to parse |
-| TBD  | CLI Framework | System.CommandLine | Official Microsoft library |
+| 2026-01-23 | .NET Version | .NET 8.0 | LTS support, modern features |
+| 2026-01-23 | Primary Output | CSV + JSON | Common formats, easy to parse |
+| 2026-01-23 | CLI Framework | System.CommandLine | Official Microsoft library |
+| 2026-01-23 | Meter ID Format | GUID (Globally Unique ID) | Ensures uniqueness, industry standard |
+| 2026-01-23 | Multi-Meter Support | Yes, up to 1000 meters/run | Enables bulk generation scenarios |
+| 2026-01-23 | Custom Profiles | Deferred to vNext | Focus on core profiles first |
+| 2026-01-23 | Database Output | Not in initial release | CSV/JSON sufficient for v1 |
+| 2026-01-23 | 3rd Party API | Match format in later phase | Drop-in replacement capability |
 
 ## Next Steps
 
-1. **Review and Validation**
-   - Review assumptions with stakeholders
-   - Prioritize questions for clarification
+1. **IMMEDIATE: Get 3rd Party API Details** ⚠️
+   - Identify the specific 3rd party API to replicate
+   - Obtain documentation, examples, and field specifications
+   - Document exact output format requirements
+   - Update data models and output formatters accordingly
+
+2. **Phase 1 Development (Can Proceed in Parallel)**
+   - Set up .NET solution structure
+   - Implement core domain models (using placeholder output format)
+   - Create randomization strategies
+   - Build basic business profiles
+   - Note: Output layer will need revision once API format is confirmed
+
+3. **Validation and Refinement**
    - Validate business profile characteristics
-
-2. **Decision Making**
-   - Make decisions on open questions
-   - Document decisions in Decision Log
-   - Update architecture based on decisions
-
-3. **Prototype Development**
-   - Start with Phase 1 implementation
-   - Validate approach with working code
+   - Test with small datasets
+   - Verify multi-meter generation (up to 1000 meters)
    - Iterate based on feedback
 
 ## Notes

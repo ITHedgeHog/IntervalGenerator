@@ -53,14 +53,23 @@
 - Orchestrate the generation process
 - Manage time period calculations
 - Coordinate between profiles and output
+- Handle multi-meter generation (up to 1000 meters)
 
 **Key Classes:**
 ```csharp
 - IntervalGeneratorEngine
+- MultiMeterOrchestrator // Manages parallel generation for multiple meters
 - IntervalPeriod (enum: FifteenMinute, ThirtyMinute)
 - GenerationConfiguration
+- MeterConfiguration
 - GenerationResult
 ```
+
+**Multi-Meter Support:**
+- Generate unique GUIDs for each meter
+- Support parallel processing for better performance
+- Stream output to handle large datasets efficiently
+- Maintain deterministic behavior across all meters when seeded
 
 ### 2. Random Number Strategy (`IntervalGenerator.Core.Randomization`)
 
@@ -106,6 +115,8 @@
 
 **Responsibilities:**
 - Format and export generated data in various formats
+- Support streaming for large multi-meter datasets
+- Future: Match 3rd party API format specification
 
 **Key Classes:**
 ```csharp
@@ -113,7 +124,10 @@
 - CsvOutputFormatter
 - JsonOutputFormatter
 - ConsoleOutputFormatter
+- StreamingOutputWriter // For efficient large-dataset output
 ```
+
+**Note:** Output format structure will be finalized once 3rd party API specification is provided. Current implementation will use placeholder format that can be easily adapted.
 
 ### 5. CLI Application (`IntervalGenerator.Cli`)
 
@@ -138,10 +152,11 @@
 
 ### Phase 1: Foundation (Week 1)
 - [ ] Set up .NET solution structure
-- [ ] Create core domain models
+- [ ] Create core domain models (with GUID meter IDs)
 - [ ] Implement interval period calculations
-- [ ] Create basic configuration system
-- [ ] Implement randomization strategy pattern
+- [ ] Create basic configuration system (supporting 1-1000 meters)
+- [ ] Implement randomization strategy pattern (deterministic/non-deterministic)
+- [ ] Create MultiMeterOrchestrator for parallel generation
 
 ### Phase 2: Basic Profile Implementation (Week 1-2)
 - [ ] Design IConsumptionProfile interface
@@ -229,7 +244,7 @@ public record IntervalReading
 {
     public DateTime Timestamp { get; init; }
     public decimal ConsumptionKwh { get; init; }
-    public string MeterId { get; init; }
+    public Guid MeterId { get; init; }
     public string BusinessType { get; init; }
 }
 ```
@@ -244,7 +259,18 @@ public record GenerationConfiguration
     public string BusinessType { get; init; }
     public bool Deterministic { get; init; }
     public int? Seed { get; init; }
-    public string MeterId { get; init; }
+    public int MeterCount { get; init; } = 1; // Support 1-1000 meters per run
+    public List<Guid>? MeterIds { get; init; } // Optional: specify exact meter IDs
+}
+```
+
+#### MeterConfiguration
+```csharp
+public record MeterConfiguration
+{
+    public Guid MeterId { get; init; }
+    public string BusinessType { get; init; }
+    public decimal BaseLoadMultiplier { get; init; } = 1.0m; // Optional variation per meter
 }
 ```
 
@@ -269,10 +295,16 @@ FinalConsumption = BaseLoad
 
 ### Performance Targets
 
+**Single Meter:**
 - Generate 1 year of 15-minute intervals (35,040 readings) in < 1 second
 - Generate 10 years of data in < 5 seconds
 - Memory usage: < 100MB for 1 year of data
-- Support streaming output for large datasets
+
+**Multi-Meter (up to 1000 meters):**
+- Generate 1 year for 100 meters (3.5M readings) in < 10 seconds
+- Generate 1 year for 1000 meters (35M readings) in < 60 seconds
+- Memory usage: Streaming output to avoid loading all data in memory
+- Support parallel generation for multiple meters
 
 ### Quality Attributes
 
