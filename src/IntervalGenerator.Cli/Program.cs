@@ -1,2 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+using System.CommandLine;
+using IntervalGenerator.Cli.Commands;
+
+var rootCommand = new RootCommand("Smart Meter Interval Generator - Generate realistic energy consumption data")
+{
+    GenerateCommand.Create()
+};
+
+return await rootCommand.InvokeAsync(args);
