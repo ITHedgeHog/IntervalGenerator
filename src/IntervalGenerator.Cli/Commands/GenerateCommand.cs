@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using IntervalGenerator.Core.Models;
 using IntervalGenerator.Core.Services;
+using IntervalGenerator.Output;
 using IntervalGenerator.Profiles;
 
 namespace IntervalGenerator.Cli.Commands;
@@ -93,8 +94,31 @@ public static class GenerateCommand
 
         var formatOption = new Option<string>(
             aliases: ["--format", "-f"],
-            description: "Output format (csv, json, console)",
-            getDefaultValue: () => "console")
+            description: "Output format (csv, json)",
+            getDefaultValue: () => "csv")
+        {
+            IsRequired = false
+        };
+        formatOption.AddValidator(result =>
+        {
+            var value = result.GetValueForOption(formatOption);
+            if (!string.IsNullOrEmpty(value) && !OutputFormatterFactory.IsSupported(value))
+            {
+                result.ErrorMessage = $"Unsupported format '{value}'. Supported: {string.Join(", ", OutputFormatterFactory.GetSupportedFormats())}";
+            }
+        });
+
+        var siteNameOption = new Option<string?>(
+            aliases: ["--site"],
+            description: "Site name to include in output")
+        {
+            IsRequired = false
+        };
+
+        var prettyOption = new Option<bool>(
+            aliases: ["--pretty"],
+            description: "Pretty-print JSON output",
+            getDefaultValue: () => false)
         {
             IsRequired = false
         };
@@ -118,6 +142,8 @@ public static class GenerateCommand
             seedOption,
             outputOption,
             formatOption,
+            siteNameOption,
+            prettyOption,
             quietOption
         };
 
@@ -132,11 +158,13 @@ public static class GenerateCommand
             var seed = context.ParseResult.GetValueForOption(seedOption);
             var output = context.ParseResult.GetValueForOption(outputOption);
             var format = context.ParseResult.GetValueForOption(formatOption)!;
+            var siteName = context.ParseResult.GetValueForOption(siteNameOption);
+            var pretty = context.ParseResult.GetValueForOption(prettyOption);
             var quiet = context.ParseResult.GetValueForOption(quietOption);
 
             var exitCode = await ExecuteAsync(
                 startDate, endDate, period, profile, meters,
-                deterministic, seed, output, format, quiet,
+                deterministic, seed, output, format, siteName, pretty, quiet,
                 context.GetCancellationToken());
 
             context.ExitCode = exitCode;
@@ -155,6 +183,8 @@ public static class GenerateCommand
         int? seed,
         FileInfo? outputFile,
         string format,
+        string? siteName,
+        bool prettyPrint,
         bool quiet,
         CancellationToken cancellationToken)
     {
@@ -188,7 +218,8 @@ public static class GenerateCommand
                 BusinessType = profileName,
                 MeterCount = meterCount,
                 Deterministic = deterministic,
-                Seed = seed
+                Seed = seed,
+                SiteName = siteName
             };
 
             // Calculate expected readings
@@ -196,44 +227,66 @@ public static class GenerateCommand
 
             if (!quiet)
             {
-                Console.WriteLine("Interval Generator");
-                Console.WriteLine("==================");
-                Console.WriteLine($"Profile:      {profileName}");
-                Console.WriteLine($"Date Range:   {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
-                Console.WriteLine($"Period:       {periodMinutes} minutes");
-                Console.WriteLine($"Meters:       {meterCount}");
-                Console.WriteLine($"Deterministic: {(deterministic ? $"Yes (seed: {seed ?? config.GetHashCode()})" : "No")}");
-                Console.WriteLine($"Expected:     {expectedCount:N0} readings");
-                Console.WriteLine();
+                Console.Error.WriteLine("Interval Generator");
+                Console.Error.WriteLine("==================");
+                Console.Error.WriteLine($"Profile:       {profileName}");
+                Console.Error.WriteLine($"Date Range:    {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+                Console.Error.WriteLine($"Period:        {periodMinutes} minutes");
+                Console.Error.WriteLine($"Meters:        {meterCount}");
+                Console.Error.WriteLine($"Deterministic: {(deterministic ? $"Yes (seed: {seed ?? config.GetHashCode()})" : "No")}");
+                Console.Error.WriteLine($"Format:        {format}");
+                Console.Error.WriteLine($"Expected:      {expectedCount:N0} readings");
+                Console.Error.WriteLine();
             }
 
-            // Create orchestrator
+            // Create orchestrator and formatter
             var orchestrator = new MultiMeterOrchestrator(registry.GetProfile);
+            var formatter = OutputFormatterFactory.Create(format);
 
-            // Generate based on format
-            if (format.Equals("console", StringComparison.OrdinalIgnoreCase) && outputFile == null)
+            var outputOptions = new OutputOptions
             {
-                await GenerateToConsoleAsync(orchestrator, config, quiet, cancellationToken);
+                SiteName = siteName ?? config.SiteName,
+                IncludeHeaders = true,
+                PrettyPrint = prettyPrint
+            };
+
+            // Generate readings
+            var readings = orchestrator.GenerateStreaming(config);
+
+            // For JSON format, we need to materialize the enumerable since the format requires grouping
+            if (format.Equals("json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!quiet)
+                {
+                    Console.Error.WriteLine("Generating readings...");
+                }
+                readings = orchestrator.Generate(config).Readings;
             }
-            else if (format.Equals("csv", StringComparison.OrdinalIgnoreCase))
+
+            // Output to file or console
+            if (outputFile != null)
             {
-                await GenerateToCsvAsync(orchestrator, config, outputFile, quiet, cancellationToken);
-            }
-            else if (format.Equals("json", StringComparison.OrdinalIgnoreCase))
-            {
-                // JSON output will be implemented with output formatters
-                Console.Error.WriteLine("JSON output format not yet implemented. Use 'csv' or 'console'.");
-                return 1;
+                if (!quiet)
+                {
+                    Console.Error.WriteLine($"Writing to: {outputFile.FullName}");
+                }
+                await formatter.WriteToFileAsync(readings, outputFile.FullName, outputOptions, cancellationToken);
+                if (!quiet)
+                {
+                    Console.Error.WriteLine($"Wrote {expectedCount:N0} readings to {outputFile.FullName}");
+                }
             }
             else
             {
-                await GenerateToConsoleAsync(orchestrator, config, quiet, cancellationToken);
+                // Output to stdout
+                await using var stdout = Console.OpenStandardOutput();
+                await formatter.WriteAsync(readings, stdout, outputOptions, cancellationToken);
             }
 
             if (!quiet)
             {
-                Console.WriteLine();
-                Console.WriteLine("Generation complete.");
+                Console.Error.WriteLine();
+                Console.Error.WriteLine("Generation complete.");
             }
 
             return 0;
@@ -247,76 +300,6 @@ public static class GenerateCommand
         {
             Console.Error.WriteLine($"Error: {ex.Message}");
             return 1;
-        }
-    }
-
-    private static Task GenerateToConsoleAsync(
-        MultiMeterOrchestrator orchestrator,
-        GenerationConfiguration config,
-        bool quiet,
-        CancellationToken cancellationToken)
-    {
-        if (!quiet)
-        {
-            Console.WriteLine("MPAN,Timestamp,Period,ConsumptionKwh,MeasurementClass,QualityFlag");
-        }
-        else
-        {
-            Console.WriteLine("MPAN,Timestamp,Period,ConsumptionKwh,MeasurementClass,QualityFlag");
-        }
-
-        long count = 0;
-        foreach (var reading in orchestrator.GenerateStreaming(config))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Console.WriteLine($"{reading.Mpan},{reading.Timestamp:yyyy-MM-dd HH:mm:ss},{reading.Period},{reading.ConsumptionKwh},{reading.MeasurementClass},{reading.QualityFlag}");
-
-            count++;
-            if (!quiet && count % 10000 == 0)
-            {
-                Console.Error.WriteLine($"Generated {count:N0} readings...");
-            }
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private static async Task GenerateToCsvAsync(
-        MultiMeterOrchestrator orchestrator,
-        GenerationConfiguration config,
-        FileInfo? outputFile,
-        bool quiet,
-        CancellationToken cancellationToken)
-    {
-        var filePath = outputFile?.FullName ?? $"intervals_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-
-        if (!quiet)
-        {
-            Console.WriteLine($"Writing to: {filePath}");
-        }
-
-        await using var writer = new StreamWriter(filePath);
-        await writer.WriteLineAsync("MPAN,Timestamp,Period,ConsumptionKwh,MeasurementClass,QualityFlag,BusinessType");
-
-        long count = 0;
-        foreach (var reading in orchestrator.GenerateStreaming(config))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            await writer.WriteLineAsync(
-                $"{reading.Mpan},{reading.Timestamp:yyyy-MM-dd HH:mm:ss},{reading.Period},{reading.ConsumptionKwh},{reading.MeasurementClass},{reading.QualityFlag},{reading.BusinessType}");
-
-            count++;
-            if (!quiet && count % 10000 == 0)
-            {
-                Console.Error.WriteLine($"Written {count:N0} readings...");
-            }
-        }
-
-        if (!quiet)
-        {
-            Console.WriteLine($"Wrote {count:N0} readings to {filePath}");
         }
     }
 }
