@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "which dotnet > /dev/null 2>&1 && dotnet --list-sdks | grep -q \"$(cat global.json | grep -oP '\"version\":\\s*\"\\K[^\"]+' | cut -d. -f1-2)\" || echo 'Warning: .NET SDK version from global.json not found. Install from https://dotnet.microsoft.com/download'"
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_NOLOGO": "1"
+  },
+  "setup": {
+    "install": "dotnet --version || (curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 10.0 --install-dir $HOME/.dotnet && export PATH=$HOME/.dotnet:$PATH)"
+  }
+}
