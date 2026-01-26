@@ -71,7 +71,12 @@ async Task InitializeMeterDataStore(WebApplication app)
     {
         StartDate = DateOnly.Parse(settings.DefaultStartDate).ToDateTime(TimeOnly.MinValue),
         EndDate = DateOnly.Parse(settings.DefaultEndDate).ToDateTime(TimeOnly.MaxValue),
-        Period = settings.DefaultIntervalPeriod == 15 ? IntervalPeriod.FifteenMinute : IntervalPeriod.ThirtyMinute,
+        Period = settings.DefaultIntervalPeriod switch
+        {
+            5 => IntervalPeriod.FiveMinute,
+            15 => IntervalPeriod.FifteenMinute,
+            _ => IntervalPeriod.ThirtyMinute
+        },
         BusinessType = settings.DefaultBusinessType,
         Deterministic = settings.DeterministicMode,
         Seed = settings.Seed,
