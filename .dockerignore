@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.user
+*.suo
+
+# Build outputs
+**/bin
+**/obj
+**/out
+
+# Test results
+**/TestResults
+
+# Documentation
+doc/
+*.md
+!CLAUDE.md
+
+# Dev container
+.devcontainer
+
+# GitHub workflows (not needed in container)
+.github
+
+# Tests (not needed in production image)
+tests/

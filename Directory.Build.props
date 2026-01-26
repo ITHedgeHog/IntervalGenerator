@@ -9,6 +9,14 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
   </PropertyGroup>
 
+  <!-- Version management: Keep in sync with version.json -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <FileVersion>$(Version).0</FileVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Authors>IntervalGenerator Contributors</Authors>
     <RepositoryType>git</RepositoryType>
