@@ -1,5 +1,0 @@
-{
-  "$schema": "https://json.schemastore.org/version.json",
-  "version": "1.0.0",
-  "releaseNotes": "Initial release with Docker support"
-}

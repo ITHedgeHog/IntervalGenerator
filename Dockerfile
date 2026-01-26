@@ -2,12 +2,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy version and build configuration files first for better layer caching
-COPY version.json .
+# Copy build configuration files first for better layer caching
 COPY Directory.Build.props .
-COPY Directory.Build.targets .
 COPY global.json .
 COPY .editorconfig .
+COPY GitVersion.yml .
 
 # Copy solution and project files
 COPY IntervalGenerator.sln .
@@ -24,10 +23,11 @@ COPY src/ src/
 
 # Build the application
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet build src/IntervalGenerator.Api/IntervalGenerator.Api.csproj -c $BUILD_CONFIGURATION --no-restore
+ARG VERSION=0.0.0-docker
+RUN dotnet build src/IntervalGenerator.Api/IntervalGenerator.Api.csproj -c $BUILD_CONFIGURATION --no-restore -p:Version=$VERSION
 
 # Publish the application
-RUN dotnet publish src/IntervalGenerator.Api/IntervalGenerator.Api.csproj -c $BUILD_CONFIGURATION --no-build -o /app/publish
+RUN dotnet publish src/IntervalGenerator.Api/IntervalGenerator.Api.csproj -c $BUILD_CONFIGURATION --no-build -o /app/publish -p:Version=$VERSION
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime

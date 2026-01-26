@@ -19,30 +19,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Extract version from version.json
-        id: version
-        run: |
-          VERSION=$(jq -r '.version' version.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Extracted version: $VERSION"
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3.0.0
+        with:
+          versionSpec: '6.x'
 
-      - name: Extract release tag version
-        id: release_version
-        run: |
-          # Remove 'v' prefix if present
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
-          echo "Release tag version: $TAG_VERSION"
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3.0.0
+        with:
+          useConfigFile: true
 
-      - name: Verify version consistency
+      - name: Display version
         run: |
-          JSON_VERSION="${{ steps.version.outputs.version }}"
-          TAG_VERSION="${{ steps.release_version.outputs.tag_version }}"
-          if [ "$JSON_VERSION" != "$TAG_VERSION" ]; then
-            echo "::warning::Version mismatch: version.json has $JSON_VERSION but release tag is $TAG_VERSION"
-            echo "Using release tag version: $TAG_VERSION"
-          fi
+          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+          echo "Major: ${{ steps.gitversion.outputs.major }}"
+          echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+          echo "Patch: ${{ steps.gitversion.outputs.patch }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -60,10 +56,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.gitversion.outputs.semVer }}
+            type=raw,value=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}
+            type=raw,value=${{ steps.gitversion.outputs.major }},enable=${{ steps.gitversion.outputs.major != '0' }}
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -76,12 +72,18 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             BUILD_CONFIGURATION=Release
+            VERSION=${{ steps.gitversion.outputs.semVer }}
 
       - name: Generate image summary
         run: |
           echo "## Docker Image Published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** ${{ steps.release_version.outputs.tag_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**GitVersion Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Major: ${{ steps.gitversion.outputs.major }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Minor: ${{ steps.gitversion.outputs.minor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Patch: ${{ steps.gitversion.outputs.patch }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
@@ -90,5 +92,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Pull command:**" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.release_version.outputs.tag_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
