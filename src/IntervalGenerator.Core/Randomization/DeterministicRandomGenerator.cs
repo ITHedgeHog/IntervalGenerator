@@ -28,14 +28,14 @@ public sealed class DeterministicRandomGenerator : IRandomNumberGenerator
     public double NextDouble() => _random.NextDouble();
 
     /// <inheritdoc />
-    public int Next(int max)
+    public int NextInt(int max)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(max);
         return _random.Next(max);
     }
 
     /// <inheritdoc />
-    public int Next(int min, int max)
+    public int NextInt(int min, int max)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(min, max);
         return _random.Next(min, max);

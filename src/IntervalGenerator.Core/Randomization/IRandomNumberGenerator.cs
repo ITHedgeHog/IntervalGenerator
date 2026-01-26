@@ -16,7 +16,7 @@ public interface IRandomNumberGenerator
     /// </summary>
     /// <param name="max">The exclusive upper bound.</param>
     /// <returns>A random integer value.</returns>
-    int Next(int max);
+    int NextInt(int max);
 
     /// <summary>
     /// Gets the next random integer between min (inclusive) and max (exclusive).
@@ -24,7 +24,7 @@ public interface IRandomNumberGenerator
     /// <param name="min">The inclusive lower bound.</param>
     /// <param name="max">The exclusive upper bound.</param>
     /// <returns>A random integer value.</returns>
-    int Next(int min, int max);
+    int NextInt(int min, int max);
 
     /// <summary>
     /// Gets whether this generator is deterministic (seeded).
