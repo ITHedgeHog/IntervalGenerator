@@ -68,7 +68,7 @@ public class IntervalGeneratorEngine
                     Period = periodNumber,
                     ConsumptionKwh = consumption,
                     MeasurementClass = measurementClass,
-                    QualityFlag = DataQualityFlag.Actual,
+                    QualityFlag = DataQuality.Actual,
                     BusinessType = _profile.BusinessType
                 };
             }

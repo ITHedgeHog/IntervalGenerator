@@ -52,7 +52,7 @@ public static class MpanGenerator
             {
                 counter++;
                 // Shift digits and append counter
-                uniqueMpan = (ulong.Parse(mpan) + (ulong)counter).ToString("D13");
+                uniqueMpan = (ulong.Parse(mpan, CultureInfo.InvariantCulture) + (ulong)counter).ToString("D13", CultureInfo.InvariantCulture);
             }
 
             result[meterId] = uniqueMpan;

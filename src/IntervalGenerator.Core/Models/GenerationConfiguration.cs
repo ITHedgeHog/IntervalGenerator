@@ -39,7 +39,7 @@ public record GenerationConfiguration
     /// <summary>
     /// Gets whether generation should be deterministic (seeded).
     /// </summary>
-    public bool Deterministic { get; init; } = false;
+    public bool Deterministic { get; init; }
 
     /// <summary>
     /// Gets the random seed for deterministic generation.

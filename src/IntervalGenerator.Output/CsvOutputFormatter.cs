@@ -88,14 +88,14 @@ public sealed class CsvOutputFormatter : IOutputFormatter
         csv.WriteField(reading.UnitId);
     }
 
-    private static string MapQualityFlagToAei(DataQualityFlag flag)
+    private static string MapQualityFlagToAei(DataQuality flag)
     {
         return flag switch
         {
-            DataQualityFlag.Actual => "A",
-            DataQualityFlag.Estimated => "E",
-            DataQualityFlag.Missing => "M",
-            DataQualityFlag.Corrected => "X",
+            DataQuality.Actual => "A",
+            DataQuality.Estimated => "E",
+            DataQuality.Missing => "M",
+            DataQuality.Corrected => "X",
             _ => "A"
         };
     }

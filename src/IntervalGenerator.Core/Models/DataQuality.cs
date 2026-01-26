@@ -4,7 +4,7 @@ namespace IntervalGenerator.Core.Models;
 /// Represents the quality/status flag for interval readings.
 /// Maps to the 'aei' field in Electralink API responses.
 /// </summary>
-public enum DataQualityFlag
+public enum DataQuality
 {
     /// <summary>
     /// Actual measured data.

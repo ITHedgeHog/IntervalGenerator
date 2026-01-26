@@ -154,14 +154,14 @@ public static class MpanHhPerPeriodEndpoint
         return string.Join(Environment.NewLine, lines);
     }
 
-    private static string MapQualityFlag(DataQualityFlag flag)
+    private static string MapQualityFlag(DataQuality flag)
     {
         return flag switch
         {
-            DataQualityFlag.Actual => "A",
-            DataQualityFlag.Estimated => "E",
-            DataQualityFlag.Missing => "M",
-            DataQualityFlag.Corrected => "X",
+            DataQuality.Actual => "A",
+            DataQuality.Estimated => "E",
+            DataQuality.Missing => "M",
+            DataQuality.Corrected => "X",
             _ => "A"
         };
     }

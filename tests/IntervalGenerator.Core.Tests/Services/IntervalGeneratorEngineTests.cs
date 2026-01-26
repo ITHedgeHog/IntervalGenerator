@@ -326,7 +326,7 @@ public class IntervalGeneratorEngineTests
             MeasurementClass.AI).ToList();
 
         readings.Should().AllSatisfy(r =>
-            r.QualityFlag.Should().Be(DataQualityFlag.Actual));
+            r.QualityFlag.Should().Be(DataQuality.Actual));
     }
 
     #endregion

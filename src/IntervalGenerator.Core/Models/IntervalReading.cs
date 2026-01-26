@@ -41,7 +41,7 @@ public record IntervalReading
     /// Gets the data quality flag (Actual, Estimated, Missing, Corrected).
     /// Maps to the 'aei' field in Electralink API.
     /// </summary>
-    public DataQualityFlag QualityFlag { get; init; } = DataQualityFlag.Actual;
+    public DataQuality QualityFlag { get; init; } = DataQuality.Actual;
 
     /// <summary>
     /// Gets the business type this meter belongs to.

@@ -119,9 +119,9 @@ public static class FilteredMpanHhByPeriodEndpoint
         var actualEndDate = endDate ?? (readings.Count > 0 ? DateOnly.FromDateTime(readings.Max(r => r.Timestamp)) : DateOnly.FromDateTime(DateTime.Today));
 
         // Group readings by quality flag
-        var actualReadings = readings.Where(r => r.QualityFlag == DataQualityFlag.Actual).ToList();
-        var estimatedReadings = readings.Where(r => r.QualityFlag == DataQualityFlag.Estimated).ToList();
-        var missingReadings = readings.Where(r => r.QualityFlag == DataQualityFlag.Missing).ToList();
+        var actualReadings = readings.Where(r => r.QualityFlag == DataQuality.Actual).ToList();
+        var estimatedReadings = readings.Where(r => r.QualityFlag == DataQuality.Estimated).ToList();
+        var missingReadings = readings.Where(r => r.QualityFlag == DataQuality.Missing).ToList();
 
         // Count unique days
         var daysActual = actualReadings.Select(r => r.Timestamp.Date).Distinct().Count();
@@ -171,14 +171,14 @@ public static class FilteredMpanHhByPeriodEndpoint
             .ToList();
     }
 
-    private static string MapQualityFlag(DataQualityFlag flag)
+    private static string MapQualityFlag(DataQuality flag)
     {
         return flag switch
         {
-            DataQualityFlag.Actual => "A",
-            DataQualityFlag.Estimated => "E",
-            DataQualityFlag.Missing => "M",
-            DataQualityFlag.Corrected => "X",
+            DataQuality.Actual => "A",
+            DataQuality.Estimated => "E",
+            DataQuality.Missing => "M",
+            DataQuality.Corrected => "X",
             _ => "A"
         };
     }
