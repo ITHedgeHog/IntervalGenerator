@@ -1,0 +1,29 @@
+{
+  "name": "IntervalGenerator",
+  "image": "mcr.microsoft.com/dotnet/sdk:10.0",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": false,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": false
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "IntervalGenerator.sln"
+      }
+    }
+  },
+  "postCreateCommand": "dotnet restore && dotnet build",
+  "remoteUser": "root"
+}
