@@ -56,9 +56,9 @@ public sealed class ManufacturingProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetSeasonalModifier(DateTime date)
+    public override decimal GetSeasonalModifier(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Summer: Cooling loads for facility
         if (month >= 6 && month <= 8)

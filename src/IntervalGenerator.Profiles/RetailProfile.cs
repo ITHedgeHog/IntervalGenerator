@@ -68,9 +68,9 @@ public sealed class RetailProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetSeasonalModifier(DateTime date)
+    public override decimal GetSeasonalModifier(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Holiday season (Nov-Dec): Peak shopping
         if (month == 11 || month == 12)

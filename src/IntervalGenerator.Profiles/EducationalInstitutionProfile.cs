@@ -83,12 +83,12 @@ public sealed class EducationalInstitutionProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetSeasonalModifier(DateTime date)
+    public override decimal GetSeasonalModifier(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Out of term time: Very low modifier
-        if (!IsTermTime(date))
+        if (!IsTermTime(dateTime))
             return 0.5m;
 
         // Summer term (May-Jun): Cooling load
@@ -123,9 +123,9 @@ public sealed class EducationalInstitutionProfile : BaseConsumptionProfile
     /// Determines if a date falls within academic term time.
     /// Assumes: September-June (Sept=1, June=6 of academic year)
     /// </summary>
-    private bool IsTermTime(DateTime date)
+    private static bool IsTermTime(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
         // Sept (9) through June (6) is term time
         // July (7) and August (8) are summer break
         return month != 7 && month != 8;

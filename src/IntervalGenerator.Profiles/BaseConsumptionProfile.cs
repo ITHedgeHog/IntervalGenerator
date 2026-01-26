@@ -53,7 +53,7 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// <param name="startHour">The start hour (inclusive).</param>
     /// <param name="endHour">The end hour (exclusive).</param>
     /// <returns>True if the hour is within business hours.</returns>
-    protected bool IsWithinBusinessHours(int hour, int startHour, int endHour)
+    protected static bool IsWithinBusinessHours(int hour, int startHour, int endHour)
     {
         return hour >= startHour && hour < endHour;
     }
@@ -63,7 +63,7 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// </summary>
     /// <param name="dateTime">The date to check.</param>
     /// <returns>True if weekday; false if weekend.</returns>
-    protected bool IsWeekday(DateTime dateTime)
+    protected static bool IsWeekday(DateTime dateTime)
     {
         return dateTime.DayOfWeek >= DayOfWeek.Monday && dateTime.DayOfWeek <= DayOfWeek.Friday;
     }
@@ -76,7 +76,7 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// <param name="startHour">The opening hour.</param>
     /// <param name="rampDurationHours">How many hours to ramp (default 1).</param>
     /// <returns>A multiplier between 0 and 1.</returns>
-    protected decimal GetRampUpFactor(int hour, int startHour, int rampDurationHours = 1)
+    protected static decimal GetRampUpFactor(int hour, int startHour, int rampDurationHours = 1)
     {
         if (hour < startHour)
             return 0.0m;
@@ -96,7 +96,7 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// <param name="endHour">The closing hour.</param>
     /// <param name="rampDurationHours">How many hours to ramp (default 1).</param>
     /// <returns>A multiplier between 0 and 1.</returns>
-    protected decimal GetRampDownFactor(int hour, int endHour, int rampDurationHours = 1)
+    protected static decimal GetRampDownFactor(int hour, int endHour, int rampDurationHours = 1)
     {
         if (hour >= endHour)
             return 0.0m;
