@@ -7,6 +7,7 @@ namespace IntervalGenerator.Profiles.Tests;
 public class ProfileRegistryTests
 {
     private readonly ProfileRegistry _registry;
+    private static readonly string[] AvailableBusinessTypes = ["Office", "Manufacturing", "Retail", "DataCenter", "Educational"];
 
     public ProfileRegistryTests()
     {
@@ -61,7 +62,7 @@ public class ProfileRegistryTests
         var act = () => _registry.GetProfile(businessType!);
 
         act.Should().Throw<ArgumentException>()
-            .WithParameterName("businessType");
+            .WithParameterName(nameof(businessType));
     }
 
     [Fact]
@@ -84,7 +85,7 @@ public class ProfileRegistryTests
         var types = _registry.GetAvailableBusinessTypes();
 
         types.Should().HaveCount(5);
-        types.Should().Contain(new[] { "Office", "Manufacturing", "Retail", "DataCenter", "Educational" });
+        types.Should().Contain(AvailableBusinessTypes);
     }
 
     [Fact]

@@ -116,7 +116,7 @@ public static class MpanHhPerPeriodEndpoint
 
                 foreach (var reading in dateGroup.OrderBy(r => r.Period))
                 {
-                    periodDict[reading.Period.ToString()] = new PeriodData
+                    periodDict[reading.Period.ToString(System.Globalization.CultureInfo.InvariantCulture)] = new PeriodData
                     {
                         Period = reading.Period,
                         Hhc = reading.ConsumptionKwh,
@@ -125,7 +125,7 @@ public static class MpanHhPerPeriodEndpoint
                     };
                 }
 
-                dateDict[dateGroup.Key.ToString("yyyy-MM-dd")] = periodDict;
+                dateDict[dateGroup.Key.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)] = periodDict;
             }
 
             mcDict[classGroup.Key] = dateDict;

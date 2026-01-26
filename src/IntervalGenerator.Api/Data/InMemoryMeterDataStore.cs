@@ -110,7 +110,7 @@ public sealed class InMemoryMeterDataStore : IMeterDataStore
             MeterId = meterId,
             SiteName = $"{businessType} Site {meterIndex + 1}",
             BusinessType = businessType,
-            Capacity = ((meterIndex % 5 + 1) * 100).ToString(),
+            Capacity = ((meterIndex % 5 + 1) * 100).ToString(System.Globalization.CultureInfo.InvariantCulture),
             Address = new MeterAddress
             {
                 Line1 = $"{(meterIndex + 1) * 10} {Streets[addressIndex]}",

@@ -134,8 +134,8 @@ public static class FilteredMpanHhByPeriodEndpoint
         return new YearlyHhByPeriodResponse
         {
             Mpan = mpan,
-            StartDate = actualStartDate.ToString("yyyy-MM-dd"),
-            EndDate = actualEndDate.ToString("yyyy-MM-dd"),
+            StartDate = actualStartDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+            EndDate = actualEndDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
             DaysActual = daysActual,
             DaysEstimated = daysEstimated,
             DaysMissing = daysMissing,
@@ -156,7 +156,7 @@ public static class FilteredMpanHhByPeriodEndpoint
             .OrderBy(g => g.Key)
             .Select(g => new DayMeasurement
             {
-                Date = g.Key.ToString("yyyy-MM-dd"),
+                Date = g.Key.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
                 QtyId = "kWh",
                 Periods = g
                     .OrderBy(r => r.Period)

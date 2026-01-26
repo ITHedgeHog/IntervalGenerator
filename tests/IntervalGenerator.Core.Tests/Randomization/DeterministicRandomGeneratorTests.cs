@@ -83,8 +83,8 @@ public class DeterministicRandomGeneratorTests
         var generator1 = new DeterministicRandomGenerator(seed);
         var generator2 = new DeterministicRandomGenerator(seed);
 
-        var sequence1 = Enumerable.Range(0, 50).Select(_ => generator1.Next(100)).ToList();
-        var sequence2 = Enumerable.Range(0, 50).Select(_ => generator2.Next(100)).ToList();
+        var sequence1 = Enumerable.Range(0, 50).Select(_ => generator1.NextInt(100)).ToList();
+        var sequence2 = Enumerable.Range(0, 50).Select(_ => generator2.NextInt(100)).ToList();
 
         sequence1.Should().BeEquivalentTo(sequence2, options => options.WithStrictOrdering());
     }

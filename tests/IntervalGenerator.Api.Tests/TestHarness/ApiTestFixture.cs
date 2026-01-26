@@ -28,7 +28,7 @@ public class ApiTestFixture : WebApplicationFactory<Program>
                 ["ApiSettings:Authentication:Enabled"] = "true",
                 ["ApiSettings:Authentication:ApiKey"] = TestApiKey,
                 ["ApiSettings:Authentication:ApiPassword"] = TestApiPassword,
-                ["ApiSettings:MeterGeneration:DefaultMeterCount"] = TestMeterCount.ToString(),
+                ["ApiSettings:MeterGeneration:DefaultMeterCount"] = TestMeterCount.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ["ApiSettings:MeterGeneration:DefaultStartDate"] = "2024-01-01",
                 ["ApiSettings:MeterGeneration:DefaultEndDate"] = "2024-01-31", // 1 month for faster tests
                 ["ApiSettings:MeterGeneration:DefaultIntervalPeriod"] = "30",

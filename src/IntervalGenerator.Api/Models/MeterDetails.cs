@@ -18,8 +18,8 @@ public record MeterDetails
     public DateTime LineLossFactorEffectiveDate { get; init; } = new(2020, 1, 1);
     public string SettlementConfigId { get; init; } = "401";
     public DateTime SettlementConfigEffectiveDate { get; init; } = new(2020, 1, 1);
-    public bool IsDisconnected { get; init; } = false;
-    public DateTime? DisconnectionDate { get; init; } = null;
+    public bool IsDisconnected { get; init; }
+    public DateTime? DisconnectionDate { get; init; }
     public string MeasurementClassId { get; init; } = "AI";
     public string AssetProviderId { get; init; } = "PROVIDER001";
 }

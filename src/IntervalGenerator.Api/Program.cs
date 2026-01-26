@@ -36,12 +36,7 @@ app.MapGet("/", (IMeterDataStore store) => Results.Ok(new
     name = "Electralink EAC API (Mock)",
     version = "1.0.0",
     metersLoaded = store.MeterCount,
-    endpoints = new[]
-    {
-        "/v2/mpanhhperperiod?mpan={mpan}",
-        "/v2/mpanadditionaldetails?mpan={mpan}",
-        "/v1/filteredmpanhhbyperiod?mpan={mpan}&StartDate={date}&EndDate={date}"
-    }
+    endpoints = Program.ApiEndpoints
 }))
     .WithName("ApiInfo")
     .WithTags("Info")
@@ -69,8 +64,8 @@ async Task InitializeMeterDataStore(WebApplication app)
 
     var config = new GenerationConfiguration
     {
-        StartDate = DateOnly.Parse(settings.DefaultStartDate).ToDateTime(TimeOnly.MinValue),
-        EndDate = DateOnly.Parse(settings.DefaultEndDate).ToDateTime(TimeOnly.MaxValue),
+        StartDate = DateOnly.ParseExact(settings.DefaultStartDate, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture).ToDateTime(TimeOnly.MinValue),
+        EndDate = DateOnly.ParseExact(settings.DefaultEndDate, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture).ToDateTime(TimeOnly.MaxValue),
         Period = settings.DefaultIntervalPeriod switch
         {
             5 => IntervalPeriod.FiveMinute,
@@ -89,4 +84,12 @@ async Task InitializeMeterDataStore(WebApplication app)
 }
 
 // Make Program class accessible for testing
-public partial class Program { }
+public partial class Program
+{
+    private static readonly string[] ApiEndpoints =
+    [
+        "/v2/mpanhhperperiod?mpan={mpan}",
+        "/v2/mpanadditionaldetails?mpan={mpan}",
+        "/v1/filteredmpanhhbyperiod?mpan={mpan}&StartDate={date}&EndDate={date}"
+    ];
+}

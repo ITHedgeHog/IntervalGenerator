@@ -71,7 +71,7 @@ public static class MpanAdditionalDetailsEndpoint
             Mpan = details.Mpan,
             Capacity = details.Capacity,
             EnergisationStatus = details.EnergisationStatus,
-            EnergisationStatusEffectiveFromDate = details.EnergisationEffectiveDate.ToString("yyyy-MM-dd"),
+            EnergisationStatusEffectiveFromDate = details.EnergisationEffectiveDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
             MeteringPointAddressLine1 = details.Address.Line1,
             MeteringPointAddressLine2 = details.Address.Line2,
             MeteringPointAddressLine3 = details.Address.Line3,
@@ -84,11 +84,11 @@ public static class MpanAdditionalDetailsEndpoint
             PostCode = details.Address.PostCode,
             SupplierId = details.SupplierId,
             LineLossFactorClassId = details.LineLossFactorClassId,
-            LineLossFactorClassIdEffectiveFromDate = details.LineLossFactorEffectiveDate.ToString("yyyy-MM-dd"),
+            LineLossFactorClassIdEffectiveFromDate = details.LineLossFactorEffectiveDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
             StandardSettlementConfigurationId = details.SettlementConfigId,
-            StandardSettlementConfigurationIdEffectiveFromDate = details.SettlementConfigEffectiveDate.ToString("yyyy-MM-dd"),
+            StandardSettlementConfigurationIdEffectiveFromDate = details.SettlementConfigEffectiveDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
             DisconnectedMpan = details.IsDisconnected.ToString().ToLowerInvariant(),
-            DisconnectionDate = details.DisconnectionDate?.ToString("yyyy-MM-dd"),
+            DisconnectionDate = details.DisconnectionDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
             AdditionalDetail =
             [
                 new AdditionalDetailItem
