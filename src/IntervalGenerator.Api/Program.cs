@@ -1,3 +1,4 @@
+using System.Reflection;
 using IntervalGenerator.Api.Authentication;
 using IntervalGenerator.Api.Data;
 using IntervalGenerator.Api.Endpoints;
@@ -87,7 +88,7 @@ async Task InitializeMeterDataStore(WebApplication app)
 public partial class Program
 {
     public static string ApiVersion { get; } =
-        typeof(Program).Assembly.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
         ?? typeof(Program).Assembly.GetName().Version?.ToString(3)
         ?? "0.0.0";
 
