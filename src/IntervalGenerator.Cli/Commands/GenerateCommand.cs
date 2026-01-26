@@ -16,119 +16,98 @@ public static class GenerateCommand
     {
         var startDateOption = new Option<DateTime>(
             aliases: ["--start-date", "-s"],
-            description: "Start date for generation (inclusive)",
             getDefaultValue: () => DateTime.Today.AddDays(-7))
         {
-            IsRequired = false
+            Name = "start-date",
+            Description = "Start date for generation (inclusive)"
         };
 
         var endDateOption = new Option<DateTime>(
             aliases: ["--end-date", "-e"],
-            description: "End date for generation (inclusive)",
             getDefaultValue: () => DateTime.Today)
         {
-            IsRequired = false
+            Name = "end-date",
+            Description = "End date for generation (inclusive)"
         };
 
         var periodOption = new Option<int>(
             aliases: ["--period", "-p"],
-            description: "Interval period in minutes (15 or 30)",
             getDefaultValue: () => 30)
         {
-            IsRequired = false
+            Name = "period",
+            Description = "Interval period in minutes (5, 15, or 30)"
         };
-        periodOption.AddValidator(result =>
-        {
-            var value = result.GetValueForOption(periodOption);
-            if (value != 15 && value != 30)
-            {
-                result.ErrorMessage = "Period must be 15 or 30 minutes";
-            }
-        });
 
         var profileOption = new Option<string>(
             aliases: ["--profile", "-t"],
-            description: "Business type profile (Office, Manufacturing, Retail, DataCenter, Educational)",
             getDefaultValue: () => "Office")
         {
-            IsRequired = false
+            Name = "profile",
+            Description = "Business type profile (Office, Manufacturing, Retail, DataCenter, Educational)"
         };
 
         var metersOption = new Option<int>(
             aliases: ["--meters", "-m"],
-            description: "Number of meters to generate (1-1000)",
             getDefaultValue: () => 1)
         {
-            IsRequired = false
+            Name = "meters",
+            Description = "Number of meters to generate (1-1000)"
         };
-        metersOption.AddValidator(result =>
-        {
-            var value = result.GetValueForOption(metersOption);
-            if (value < 1 || value > 1000)
-            {
-                result.ErrorMessage = "Meter count must be between 1 and 1000";
-            }
-        });
 
         var deterministicOption = new Option<bool>(
             aliases: ["--deterministic", "-d"],
-            description: "Enable deterministic mode for reproducible output",
             getDefaultValue: () => false)
         {
-            IsRequired = false
+            Name = "deterministic",
+            Description = "Enable deterministic mode for reproducible output"
         };
 
         var seedOption = new Option<int?>(
             aliases: ["--seed"],
-            description: "Random seed for deterministic mode")
+            getDefaultValue: () => null)
         {
-            IsRequired = false
+            Name = "seed",
+            Description = "Random seed for deterministic mode"
         };
 
         var outputOption = new Option<FileInfo?>(
             aliases: ["--output", "-o"],
-            description: "Output file path (outputs to console if not specified)")
+            getDefaultValue: () => null)
         {
-            IsRequired = false
+            Name = "output",
+            Description = "Output file path (outputs to console if not specified)"
         };
 
         var formatOption = new Option<string>(
             aliases: ["--format", "-f"],
-            description: "Output format (csv, json)",
             getDefaultValue: () => "csv")
         {
-            IsRequired = false
+            Name = "format",
+            Description = "Output format (csv, json)"
         };
-        formatOption.AddValidator(result =>
-        {
-            var value = result.GetValueForOption(formatOption);
-            if (!string.IsNullOrEmpty(value) && !OutputFormatterFactory.IsSupported(value))
-            {
-                result.ErrorMessage = $"Unsupported format '{value}'. Supported: {string.Join(", ", OutputFormatterFactory.GetSupportedFormats())}";
-            }
-        });
 
         var siteNameOption = new Option<string?>(
             aliases: ["--site"],
-            description: "Site name to include in output")
+            getDefaultValue: () => null)
         {
-            IsRequired = false
+            Name = "site",
+            Description = "Site name to include in output"
         };
 
         var prettyOption = new Option<bool>(
             aliases: ["--pretty"],
-            description: "Pretty-print JSON output",
             getDefaultValue: () => false)
         {
-            IsRequired = false
+            Name = "pretty",
+            Description = "Pretty-print JSON output"
         };
 
         var quietOption = new Option<bool>(
             aliases: ["--quiet", "-q"],
-            description: "Suppress progress output",
             getDefaultValue: () => false)
         {
-            IsRequired = false
+            Name = "quiet",
+            Description = "Suppress progress output"
         };
 
         var command = new Command("generate", "Generate interval consumption data")
@@ -147,27 +126,15 @@ public static class GenerateCommand
             quietOption
         };
 
-        command.SetHandler(async (InvocationContext context) =>
+        command.Handler = CommandHandler.Create(
+            (DateTime startDate, DateTime endDate, int period, string profile, int meters,
+             bool deterministic, int? seed, FileInfo? output, string format, string? site,
+             bool pretty, bool quiet) =>
         {
-            var startDate = context.ParseResult.GetValueForOption(startDateOption);
-            var endDate = context.ParseResult.GetValueForOption(endDateOption);
-            var period = context.ParseResult.GetValueForOption(periodOption);
-            var profile = context.ParseResult.GetValueForOption(profileOption)!;
-            var meters = context.ParseResult.GetValueForOption(metersOption);
-            var deterministic = context.ParseResult.GetValueForOption(deterministicOption);
-            var seed = context.ParseResult.GetValueForOption(seedOption);
-            var output = context.ParseResult.GetValueForOption(outputOption);
-            var format = context.ParseResult.GetValueForOption(formatOption)!;
-            var siteName = context.ParseResult.GetValueForOption(siteNameOption);
-            var pretty = context.ParseResult.GetValueForOption(prettyOption);
-            var quiet = context.ParseResult.GetValueForOption(quietOption);
-
-            var exitCode = await ExecuteAsync(
+            return ExecuteAsync(
                 startDate, endDate, period, profile, meters,
-                deterministic, seed, output, format, siteName, pretty, quiet,
-                context.GetCancellationToken());
-
-            context.ExitCode = exitCode;
+                deterministic, seed, output, format, site, pretty, quiet,
+                CancellationToken.None).Result;
         });
 
         return command;
@@ -197,6 +164,13 @@ public static class GenerateCommand
                 return 1;
             }
 
+            // Validate period
+            if (periodMinutes != 5 && periodMinutes != 15 && periodMinutes != 30)
+            {
+                Console.Error.WriteLine("Error: Period must be 5, 15, or 30 minutes.");
+                return 1;
+            }
+
             // Validate profile
             var registry = new ProfileRegistry();
             if (!registry.IsRegistered(profileName))
@@ -206,9 +180,26 @@ public static class GenerateCommand
                 return 1;
             }
 
-            var intervalPeriod = periodMinutes == 15
-                ? IntervalPeriod.FifteenMinute
-                : IntervalPeriod.ThirtyMinute;
+            // Validate meter count
+            if (meterCount < 1 || meterCount > 1000)
+            {
+                Console.Error.WriteLine("Error: Meter count must be between 1 and 1000.");
+                return 1;
+            }
+
+            // Validate format
+            if (!OutputFormatterFactory.IsSupported(format))
+            {
+                Console.Error.WriteLine($"Error: Unsupported format '{format}'.");
+                Console.Error.WriteLine($"Supported: {string.Join(", ", OutputFormatterFactory.GetSupportedFormats())}");
+                return 1;
+            }
+
+            var intervalPeriod = periodMinutes == 5
+                ? IntervalPeriod.FiveMinute
+                : periodMinutes == 15
+                    ? IntervalPeriod.FifteenMinute
+                    : IntervalPeriod.ThirtyMinute;
 
             var config = new GenerationConfiguration
             {
