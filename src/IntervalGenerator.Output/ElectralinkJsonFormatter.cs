@@ -21,7 +21,7 @@ namespace IntervalGenerator.Output;
 ///   }
 /// }
 /// </remarks>
-public class ElectralinkJsonFormatter : IOutputFormatter
+public sealed class ElectralinkJsonFormatter : IOutputFormatter
 {
     /// <inheritdoc />
     public string FormatName => "json";

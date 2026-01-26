@@ -32,8 +32,10 @@ public class ApiKeyAuthenticationMiddleware
         }
 
         // Skip authentication for health check and swagger endpoints
-        var path = context.Request.Path.Value?.ToLower() ?? "";
-        if (path.StartsWith("/health") || path.StartsWith("/swagger") || path == "/")
+        var path = context.Request.Path.Value ?? "";
+        if (path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase) ||
+            path.Equals("/", StringComparison.OrdinalIgnoreCase))
         {
             await _next(context);
             return;

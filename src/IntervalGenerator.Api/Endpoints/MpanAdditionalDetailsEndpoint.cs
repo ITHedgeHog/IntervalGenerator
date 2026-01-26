@@ -54,9 +54,9 @@ public static class MpanAdditionalDetailsEndpoint
         var response = BuildResponse(details);
 
         // Check response type from header
-        var responseType = context.Request.Headers["response-type"].FirstOrDefault()?.ToLower() ?? "json";
+        var responseType = context.Request.Headers["response-type"].FirstOrDefault() ?? "json";
 
-        if (responseType == "csv")
+        if (responseType.Equals("csv", StringComparison.OrdinalIgnoreCase))
         {
             return HandleCsvResponse(response);
         }
@@ -87,7 +87,7 @@ public static class MpanAdditionalDetailsEndpoint
             LineLossFactorClassIdEffectiveFromDate = details.LineLossFactorEffectiveDate.ToString("yyyy-MM-dd"),
             StandardSettlementConfigurationId = details.SettlementConfigId,
             StandardSettlementConfigurationIdEffectiveFromDate = details.SettlementConfigEffectiveDate.ToString("yyyy-MM-dd"),
-            DisconnectedMpan = details.IsDisconnected.ToString().ToLower(),
+            DisconnectedMpan = details.IsDisconnected.ToString().ToLowerInvariant(),
             DisconnectionDate = details.DisconnectionDate?.ToString("yyyy-MM-dd"),
             AdditionalDetail =
             [

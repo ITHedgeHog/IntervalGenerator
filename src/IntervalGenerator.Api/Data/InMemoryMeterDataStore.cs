@@ -14,7 +14,7 @@ namespace IntervalGenerator.Api.Data;
 /// In-memory implementation of the meter data store.
 /// Pre-generates all meter data at startup for fast API responses.
 /// </summary>
-public class InMemoryMeterDataStore : IMeterDataStore
+public sealed class InMemoryMeterDataStore : IMeterDataStore
 {
     private readonly ILogger<InMemoryMeterDataStore> _logger;
     private readonly ConcurrentDictionary<string, List<IntervalReading>> _readings = new();

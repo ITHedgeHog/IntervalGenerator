@@ -56,9 +56,9 @@ public static class MpanHhPerPeriodEndpoint
         var details = store.GetMeterDetails(mpan);
 
         // Check response type from header
-        var responseType = context.Request.Headers["response-type"].FirstOrDefault()?.ToLower() ?? "json";
+        var responseType = context.Request.Headers["response-type"].FirstOrDefault() ?? "json";
 
-        if (responseType == "csv")
+        if (responseType.Equals("csv", StringComparison.OrdinalIgnoreCase))
         {
             return HandleCsvResponse(readings, details?.SiteName ?? "");
         }

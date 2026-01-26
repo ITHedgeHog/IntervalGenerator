@@ -13,35 +13,35 @@ public interface IConsumptionProfile
     /// <summary>
     /// Gets the base load consumption in kWh for the given date and hour.
     /// </summary>
-    /// <param name="date">The date to calculate base load for.</param>
+    /// <param name="dateTime">The date to calculate base load for.</param>
     /// <param name="hour">The hour of day (0-23).</param>
     /// <returns>Base load in kWh (non-negative).</returns>
-    decimal GetBaseLoad(DateTime date, int hour);
+    decimal GetBaseLoad(DateTime dateTime, int hour);
 
     /// <summary>
     /// Gets the time-of-day modifier (multiplier) for consumption.
     /// Used to model peak and off-peak periods.
     /// </summary>
-    /// <param name="date">The date.</param>
+    /// <param name="dateTime">The date.</param>
     /// <param name="hour">The hour of day (0-23).</param>
     /// <returns>Multiplier (typically 0.0 to 2.0).</returns>
-    decimal GetTimeOfDayModifier(DateTime date, int hour);
+    decimal GetTimeOfDayModifier(DateTime dateTime, int hour);
 
     /// <summary>
     /// Gets the day-of-week modifier for consumption.
     /// Used to model weekday vs weekend variations.
     /// </summary>
-    /// <param name="date">The date.</param>
+    /// <param name="dateTime">The date.</param>
     /// <returns>Multiplier (typically 0.5 to 1.5).</returns>
-    decimal GetDayOfWeekModifier(DateTime date);
+    decimal GetDayOfWeekModifier(DateTime dateTime);
 
     /// <summary>
     /// Gets the seasonal modifier for consumption.
     /// Used to model summer/winter variations.
     /// </summary>
-    /// <param name="date">The date.</param>
+    /// <param name="dateTime">The date.</param>
     /// <returns>Multiplier (typically 0.8 to 1.2).</returns>
-    decimal GetSeasonalModifier(DateTime date);
+    decimal GetSeasonalModifier(DateTime dateTime);
 
     /// <summary>
     /// Gets the random variation/noise as a multiplier factor.

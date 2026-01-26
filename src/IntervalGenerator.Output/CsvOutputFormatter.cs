@@ -13,7 +13,7 @@ namespace IntervalGenerator.Output;
 /// MPAN,Site,MeasurementClass,Date,Period,HHC,AEI,QtyId
 /// 1266448934017,Site A,AI,2024-01-01,1,2.5,A,kWh
 /// </remarks>
-public class CsvOutputFormatter : IOutputFormatter
+public sealed class CsvOutputFormatter : IOutputFormatter
 {
     /// <inheritdoc />
     public string FormatName => "csv";

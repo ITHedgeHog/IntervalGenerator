@@ -4,7 +4,7 @@ namespace IntervalGenerator.Profiles;
 /// Consumption profile for office buildings.
 /// Characteristics: 8am-6pm weekday operation, reduced weekends, seasonal HVAC variations.
 /// </summary>
-public class OfficeProfile : BaseConsumptionProfile
+public sealed class OfficeProfile : BaseConsumptionProfile
 {
     private const decimal BaseLoadKwh = 80m; // Base consumption per interval
     private const int OpeningHour = 8;
@@ -14,10 +14,10 @@ public class OfficeProfile : BaseConsumptionProfile
     public override string BusinessType => "Office";
 
     /// <inheritdoc />
-    public override decimal GetBaseLoad(DateTime date, int hour)
+    public override decimal GetBaseLoad(DateTime dateTime, int hour)
     {
         // During business hours on weekdays
-        if (IsWeekday(date) && IsWithinBusinessHours(hour, OpeningHour, ClosingHour))
+        if (IsWeekday(dateTime) && IsWithinBusinessHours(hour, OpeningHour, ClosingHour))
         {
             return BaseLoadKwh;
         }
@@ -27,7 +27,7 @@ public class OfficeProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetTimeOfDayModifier(DateTime date, int hour)
+    public override decimal GetTimeOfDayModifier(DateTime dateTime, int hour)
     {
         // Outside business hours - minimal consumption
         if (!IsWithinBusinessHours(hour, OpeningHour, ClosingHour))
@@ -50,9 +50,9 @@ public class OfficeProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetDayOfWeekModifier(DateTime date)
+    public override decimal GetDayOfWeekModifier(DateTime dateTime)
     {
-        return date.DayOfWeek switch
+        return dateTime.DayOfWeek switch
         {
             DayOfWeek.Monday => 1.0m,
             DayOfWeek.Tuesday => 1.0m,

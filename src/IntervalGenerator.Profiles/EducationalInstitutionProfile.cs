@@ -4,7 +4,7 @@ namespace IntervalGenerator.Profiles;
 /// Consumption profile for educational institutions (schools, universities).
 /// Characteristics: Term-time operation, scheduled occupancy, academic calendars.
 /// </summary>
-public class EducationalInstitutionProfile : BaseConsumptionProfile
+public sealed class EducationalInstitutionProfile : BaseConsumptionProfile
 {
     private const decimal BaseLoadKwh = 120m; // Moderate baseline
     private const int OpeningHour = 8;
@@ -14,11 +14,11 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     public override string BusinessType => "Educational";
 
     /// <inheritdoc />
-    public override decimal GetBaseLoad(DateTime date, int hour)
+    public override decimal GetBaseLoad(DateTime dateTime, int hour)
     {
         // Academic year: Sep-Jun
         // Reduced load during summer break (Jul-Aug)
-        bool isTermTime = IsTermTime(date);
+        bool isTermTime = IsTermTime(dateTime);
 
         if (!isTermTime)
             return BaseLoadKwh * 0.3m; // Minimal summer load
@@ -32,10 +32,10 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetTimeOfDayModifier(DateTime date, int hour)
+    public override decimal GetTimeOfDayModifier(DateTime dateTime, int hour)
     {
         // During term time only
-        if (!IsTermTime(date))
+        if (!IsTermTime(dateTime))
             return 0.3m; // Minimal consumption during breaks
 
         // Outside school hours: minimal
@@ -63,13 +63,13 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetDayOfWeekModifier(DateTime date)
+    public override decimal GetDayOfWeekModifier(DateTime dateTime)
     {
         // During summer break: no variation
-        if (!IsTermTime(date))
+        if (!IsTermTime(dateTime))
             return 1.0m;
 
-        return date.DayOfWeek switch
+        return dateTime.DayOfWeek switch
         {
             DayOfWeek.Monday => 1.0m,
             DayOfWeek.Tuesday => 1.05m,
