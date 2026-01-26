@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using IntervalGenerator.Core.Models;
 using IntervalGenerator.Core.Services;
 using IntervalGenerator.Output;
@@ -14,127 +13,112 @@ public static class GenerateCommand
 {
     public static Command Create()
     {
-        var startDateOption = new Option<DateTime>(
-            aliases: ["--start-date", "-s"],
-            getDefaultValue: () => DateTime.Today.AddDays(-7))
+        var startDateOption = new Option<DateTime>("--start-date", "-s")
         {
-            Name = "start-date",
-            Description = "Start date for generation (inclusive)"
+            Description = "Start date for generation (inclusive)",
+            DefaultValueFactory = _ => DateTime.Today.AddDays(-7)
         };
 
-        var endDateOption = new Option<DateTime>(
-            aliases: ["--end-date", "-e"],
-            getDefaultValue: () => DateTime.Today)
+        var endDateOption = new Option<DateTime>("--end-date", "-e")
         {
-            Name = "end-date",
-            Description = "End date for generation (inclusive)"
+            Description = "End date for generation (inclusive)",
+            DefaultValueFactory = _ => DateTime.Today
         };
 
-        var periodOption = new Option<int>(
-            aliases: ["--period", "-p"],
-            getDefaultValue: () => 30)
+        var periodOption = new Option<int>("--period", "-p")
         {
-            Name = "period",
-            Description = "Interval period in minutes (5, 15, or 30)"
+            Description = "Interval period in minutes (5, 15, or 30)",
+            DefaultValueFactory = _ => 30
         };
 
-        var profileOption = new Option<string>(
-            aliases: ["--profile", "-t"],
-            getDefaultValue: () => "Office")
+        var profileOption = new Option<string>("--profile", "-t")
         {
-            Name = "profile",
-            Description = "Business type profile (Office, Manufacturing, Retail, DataCenter, Educational)"
+            Description = "Business type profile (Office, Manufacturing, Retail, DataCenter, Educational)",
+            DefaultValueFactory = _ => "Office"
         };
 
-        var metersOption = new Option<int>(
-            aliases: ["--meters", "-m"],
-            getDefaultValue: () => 1)
+        var metersOption = new Option<int>("--meters", "-m")
         {
-            Name = "meters",
-            Description = "Number of meters to generate (1-1000)"
+            Description = "Number of meters to generate (1-1000)",
+            DefaultValueFactory = _ => 1
         };
 
-        var deterministicOption = new Option<bool>(
-            aliases: ["--deterministic", "-d"],
-            getDefaultValue: () => false)
+        var deterministicOption = new Option<bool>("--deterministic", "-d")
         {
-            Name = "deterministic",
-            Description = "Enable deterministic mode for reproducible output"
+            Description = "Enable deterministic mode for reproducible output",
+            DefaultValueFactory = _ => false
         };
 
-        var seedOption = new Option<int?>(
-            aliases: ["--seed"],
-            getDefaultValue: () => null)
+        var seedOption = new Option<int?>("--seed")
         {
-            Name = "seed",
-            Description = "Random seed for deterministic mode"
+            Description = "Random seed for deterministic mode",
+            DefaultValueFactory = _ => null
         };
 
-        var outputOption = new Option<FileInfo?>(
-            aliases: ["--output", "-o"],
-            getDefaultValue: () => null)
+        var outputOption = new Option<FileInfo?>("--output", "-o")
         {
-            Name = "output",
-            Description = "Output file path (outputs to console if not specified)"
+            Description = "Output file path (outputs to console if not specified)",
+            DefaultValueFactory = _ => null
         };
 
-        var formatOption = new Option<string>(
-            aliases: ["--format", "-f"],
-            getDefaultValue: () => "csv")
+        var formatOption = new Option<string>("--format", "-f")
         {
-            Name = "format",
-            Description = "Output format (csv, json)"
+            Description = "Output format (csv, json)",
+            DefaultValueFactory = _ => "csv"
         };
 
-        var siteNameOption = new Option<string?>(
-            aliases: ["--site"],
-            getDefaultValue: () => null)
+        var siteNameOption = new Option<string?>("--site")
         {
-            Name = "site",
-            Description = "Site name to include in output"
+            Description = "Site name to include in output",
+            DefaultValueFactory = _ => null
         };
 
-        var prettyOption = new Option<bool>(
-            aliases: ["--pretty"],
-            getDefaultValue: () => false)
+        var prettyOption = new Option<bool>("--pretty")
         {
-            Name = "pretty",
-            Description = "Pretty-print JSON output"
+            Description = "Pretty-print JSON output",
+            DefaultValueFactory = _ => false
         };
 
-        var quietOption = new Option<bool>(
-            aliases: ["--quiet", "-q"],
-            getDefaultValue: () => false)
+        var quietOption = new Option<bool>("--quiet", "-q")
         {
-            Name = "quiet",
-            Description = "Suppress progress output"
+            Description = "Suppress progress output",
+            DefaultValueFactory = _ => false
         };
 
-        var command = new Command("generate", "Generate interval consumption data")
-        {
-            startDateOption,
-            endDateOption,
-            periodOption,
-            profileOption,
-            metersOption,
-            deterministicOption,
-            seedOption,
-            outputOption,
-            formatOption,
-            siteNameOption,
-            prettyOption,
-            quietOption
-        };
+        var command = new Command("generate", "Generate interval consumption data");
 
-        command.Handler = CommandHandler.Create(
-            (DateTime startDate, DateTime endDate, int period, string profile, int meters,
-             bool deterministic, int? seed, FileInfo? output, string format, string? site,
-             bool pretty, bool quiet) =>
+        command.Options.Add(startDateOption);
+        command.Options.Add(endDateOption);
+        command.Options.Add(periodOption);
+        command.Options.Add(profileOption);
+        command.Options.Add(metersOption);
+        command.Options.Add(deterministicOption);
+        command.Options.Add(seedOption);
+        command.Options.Add(outputOption);
+        command.Options.Add(formatOption);
+        command.Options.Add(siteNameOption);
+        command.Options.Add(prettyOption);
+        command.Options.Add(quietOption);
+
+        command.SetAction((parseResult, cancellationToken) =>
         {
+            var startDate = parseResult.GetValue(startDateOption);
+            var endDate = parseResult.GetValue(endDateOption);
+            var period = parseResult.GetValue(periodOption);
+            var profile = parseResult.GetValue(profileOption) ?? "Office";
+            var meters = parseResult.GetValue(metersOption);
+            var deterministic = parseResult.GetValue(deterministicOption);
+            var seed = parseResult.GetValue(seedOption);
+            var output = parseResult.GetValue(outputOption);
+            var format = parseResult.GetValue(formatOption) ?? "csv";
+            var site = parseResult.GetValue(siteNameOption);
+            var pretty = parseResult.GetValue(prettyOption);
+            var quiet = parseResult.GetValue(quietOption);
+
             return ExecuteAsync(
                 startDate, endDate, period, profile, meters,
                 deterministic, seed, output, format, site, pretty, quiet,
-                CancellationToken.None).Result;
+                cancellationToken);
         });
 
         return command;
