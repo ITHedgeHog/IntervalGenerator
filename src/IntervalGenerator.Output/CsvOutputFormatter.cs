@@ -81,7 +81,7 @@ public sealed class CsvOutputFormatter : IOutputFormatter
         csv.WriteField(reading.Mpan);
         csv.WriteField(siteName ?? "");
         csv.WriteField(reading.MeasurementClass.ToString());
-        csv.WriteField(reading.Timestamp.ToString("yyyy-MM-dd"));
+        csv.WriteField(reading.Timestamp.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
         csv.WriteField(reading.Period);
         csv.WriteField(reading.ConsumptionKwh);
         csv.WriteField(MapQualityFlagToAei(reading.QualityFlag));

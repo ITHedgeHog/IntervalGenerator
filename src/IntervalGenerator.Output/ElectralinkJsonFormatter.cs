@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using IntervalGenerator.Core.Models;
@@ -23,6 +24,20 @@ namespace IntervalGenerator.Output;
 /// </remarks>
 public sealed class ElectralinkJsonFormatter : IOutputFormatter
 {
+    private static readonly JsonSerializerOptions DefaultOptions = new()
+    {
+        WriteIndented = false,
+        PropertyNamingPolicy = null,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    private static readonly JsonSerializerOptions PrettyPrintOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = null,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
     /// <inheritdoc />
     public string FormatName => "json";
 
@@ -39,13 +54,7 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
         options ??= new OutputOptions();
 
         var output = BuildHhPerPeriodStructure(readings, options.SiteName);
-
-        var jsonOptions = new JsonSerializerOptions
-        {
-            WriteIndented = options.PrettyPrint,
-            PropertyNamingPolicy = null, // Keep exact property names
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+        var jsonOptions = options.PrettyPrint ? PrettyPrintOptions : DefaultOptions;
 
         await JsonSerializer.SerializeAsync(stream, output, jsonOptions, cancellationToken);
     }
@@ -109,7 +118,7 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
 
                 foreach (var reading in dateGroup.OrderBy(r => r.Period))
                 {
-                    periodDict[reading.Period.ToString()] = new PeriodData
+                    periodDict[reading.Period.ToString(CultureInfo.InvariantCulture)] = new PeriodData
                     {
                         Period = reading.Period,
                         Hhc = reading.ConsumptionKwh,
@@ -118,7 +127,7 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
                     };
                 }
 
-                dateDict[dateGroup.Key.ToString("yyyy-MM-dd")] = periodDict;
+                dateDict[dateGroup.Key.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)] = periodDict;
             }
 
             mcDict[classGroup.Key] = dateDict;
@@ -141,7 +150,7 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
 
     #region JSON Output Models
 
-    private class HhPerPeriodOutput
+    private sealed class HhPerPeriodOutput
     {
         public required string MPAN { get; set; }
 
@@ -151,7 +160,7 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
         public required Dictionary<string, Dictionary<string, Dictionary<string, PeriodData>>> MC { get; set; }
     }
 
-    private class PeriodData
+    private sealed class PeriodData
     {
         [JsonPropertyName("period")]
         public int Period { get; set; }

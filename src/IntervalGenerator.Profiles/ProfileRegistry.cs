@@ -66,8 +66,7 @@ public class ProfileRegistry
     /// <exception cref="ArgumentNullException">Thrown if profile is null.</exception>
     public void RegisterProfile(IConsumptionProfile profile)
     {
-        if (profile == null)
-            throw new ArgumentNullException(nameof(profile));
+        ArgumentNullException.ThrowIfNull(profile);
 
         _profiles[profile.BusinessType] = profile;
     }
