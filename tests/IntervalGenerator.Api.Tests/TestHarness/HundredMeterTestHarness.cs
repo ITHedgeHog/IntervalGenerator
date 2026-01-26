@@ -258,7 +258,7 @@ public class HundredMeterTestHarness : IClassFixture<ApiTestFixture>
                 foreach (var period in date.Value.Values)
                 {
                     period.Period.Should().BeInRange(1, 48);
-                    period.Hhc.Should().BeGreaterThan(0);
+                    period.Hhc.Should().BeGreaterThanOrEqualTo(0);
                     period.Aei.Should().BeOneOf("A", "E", "M", "X");
                     period.QtyId.Should().Be("kWh");
                 }

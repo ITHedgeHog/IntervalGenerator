@@ -12,75 +12,10 @@ builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSet
 // Add data store as singleton (shared across requests)
 builder.Services.AddSingleton<IMeterDataStore, InMemoryMeterDataStore>();
 
-// Add Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Title = "Electralink EAC API (Mock)",
-        Version = "v1",
-        Description = "Drop-in replacement for Electralink EAC API providing generated interval data"
-    });
-
-    // Add API key authentication to Swagger
-    c.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Description = "API Key authentication",
-        Name = "X-Api-Key",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
-    });
-
-    c.AddSecurityDefinition("ApiPassword", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Description = "API Password authentication",
-        Name = "X-Api-Password",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
-    });
-
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "ApiKey"
-                }
-            },
-            Array.Empty<string>()
-        },
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "ApiPassword"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
-
 var app = builder.Build();
 
 // Initialize meter data store
 await InitializeMeterDataStore(app);
-
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Electralink EAC API v1");
-    });
-}
 
 // Use API key authentication
 app.UseApiKeyAuthentication();

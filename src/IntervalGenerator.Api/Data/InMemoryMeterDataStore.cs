@@ -22,7 +22,7 @@ public class InMemoryMeterDataStore : IMeterDataStore
     private bool _isInitialized;
 
     // Business types to cycle through for varied profiles
-    private static readonly string[] BusinessTypes = ["Office", "Manufacturing", "Retail", "DataCenter", "EducationalInstitution"];
+    private static readonly string[] BusinessTypes = ["Office", "Manufacturing", "Retail", "DataCenter", "Educational"];
 
     // Sample addresses for realistic data
     private static readonly string[] Streets = ["High Street", "Main Street", "Station Road", "Church Lane", "Park Avenue", "Victoria Road", "Mill Lane", "School Road", "Market Square", "Bridge Street"];
@@ -87,12 +87,17 @@ public class InMemoryMeterDataStore : IMeterDataStore
         };
 
         // Create random generator
-        var randomFactory = new RandomGeneratorFactory();
-        var random = randomFactory.Create(config);
+        var random = RandomGeneratorFactory.Create(config);
 
         // Generate readings
         var engine = new IntervalGeneratorEngine(profile, random);
-        var readings = engine.GenerateReadings(config, meterId).ToList();
+        var readings = engine.GenerateReadings(
+            meterId,
+            mpan,
+            config.StartDate,
+            config.EndDate,
+            config.Period,
+            config.MeasurementClass).ToList();
 
         // Store readings
         _readings[mpan] = readings;

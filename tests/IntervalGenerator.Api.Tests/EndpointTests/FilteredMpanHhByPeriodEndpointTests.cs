@@ -97,9 +97,9 @@ public class FilteredMpanHhByPeriodEndpointTests : IClassFixture<ApiTestFixture>
         data!.Mpan.Should().Be(testMpan);
         data.StartDate.Should().NotBeNullOrEmpty();
         data.EndDate.Should().NotBeNullOrEmpty();
-        data.DaysActual.Should().BeGreaterOrEqualTo(0);
-        data.DaysEstimated.Should().BeGreaterOrEqualTo(0);
-        data.DaysMissing.Should().BeGreaterOrEqualTo(0);
+        data.DaysActual.Should().BeGreaterThanOrEqualTo(0);
+        data.DaysEstimated.Should().BeGreaterThanOrEqualTo(0);
+        data.DaysMissing.Should().BeGreaterThanOrEqualTo(0);
         data.ActualMeasurements.Should().NotBeNull();
         data.EstimatedMeasurements.Should().NotBeNull();
         data.MissingMeasurement.Should().NotBeNull();

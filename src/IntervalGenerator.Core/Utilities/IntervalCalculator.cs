@@ -54,6 +54,13 @@ public static class IntervalCalculator
     {
         int periodMinutes = (int)intervalPeriod;
         int totalMinutes = periodNumber * periodMinutes;
+
+        // Handle day transitions - if total minutes is 1440 or more, go to next day
+        if (totalMinutes >= 1440)
+        {
+            return date.AddDays(1).Date; // Midnight of next day
+        }
+
         int hours = totalMinutes / 60;
         int minutes = totalMinutes % 60;
 
