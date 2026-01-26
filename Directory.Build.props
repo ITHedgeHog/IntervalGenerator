@@ -9,6 +9,12 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
   </PropertyGroup>
 
+  <!-- Version management: GitVersion sets these properties at build time -->
+  <!-- Fallback version for local builds without GitVersion -->
+  <PropertyGroup Condition="'$(Version)' == ''">
+    <Version>0.0.0-local</Version>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Authors>IntervalGenerator Contributors</Authors>
     <RepositoryType>git</RepositoryType>

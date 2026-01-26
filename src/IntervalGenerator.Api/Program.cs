@@ -1,3 +1,4 @@
+using System.Reflection;
 using IntervalGenerator.Api.Authentication;
 using IntervalGenerator.Api.Data;
 using IntervalGenerator.Api.Endpoints;
@@ -34,7 +35,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
 app.MapGet("/", (IMeterDataStore store) => Results.Ok(new
 {
     name = "Electralink EAC API (Mock)",
-    version = "1.0.0",
+    version = Program.ApiVersion,
     metersLoaded = store.MeterCount,
     endpoints = Program.ApiEndpoints
 }))
@@ -86,6 +87,11 @@ async Task InitializeMeterDataStore(WebApplication app)
 // Make Program class accessible for testing
 public partial class Program
 {
+    public static string ApiVersion { get; } =
+        typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? typeof(Program).Assembly.GetName().Version?.ToString(3)
+        ?? "0.0.0";
+
     private static readonly string[] ApiEndpoints =
     [
         "/v2/mpanhhperperiod?mpan={mpan}",
