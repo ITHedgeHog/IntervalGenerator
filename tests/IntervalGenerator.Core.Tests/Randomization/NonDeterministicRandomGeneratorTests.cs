@@ -52,7 +52,7 @@ public class NonDeterministicRandomGeneratorTests
         var generator = new NonDeterministicRandomGenerator();
         const int max = 100;
 
-        var values = Enumerable.Range(0, 1000).Select(_ => generator.Next(max)).ToList();
+        var values = Enumerable.Range(0, 1000).Select(_ => generator.NextInt(max)).ToList();
 
         values.Should().AllSatisfy(v =>
         {
@@ -68,7 +68,7 @@ public class NonDeterministicRandomGeneratorTests
         const int min = 50;
         const int max = 100;
 
-        var values = Enumerable.Range(0, 1000).Select(_ => generator.Next(min, max)).ToList();
+        var values = Enumerable.Range(0, 1000).Select(_ => generator.NextInt(min, max)).ToList();
 
         values.Should().AllSatisfy(v =>
         {
@@ -82,8 +82,8 @@ public class NonDeterministicRandomGeneratorTests
     {
         var generator = new NonDeterministicRandomGenerator();
 
-        var actZero = () => generator.Next(0);
-        var actNegative = () => generator.Next(-1);
+        var actZero = () => generator.NextInt(0);
+        var actNegative = () => generator.NextInt(-1);
 
         actZero.Should().Throw<ArgumentOutOfRangeException>();
         actNegative.Should().Throw<ArgumentOutOfRangeException>();
@@ -94,8 +94,8 @@ public class NonDeterministicRandomGeneratorTests
     {
         var generator = new NonDeterministicRandomGenerator();
 
-        var actEqual = () => generator.Next(10, 10);
-        var actGreater = () => generator.Next(20, 10);
+        var actEqual = () => generator.NextInt(10, 10);
+        var actGreater = () => generator.NextInt(20, 10);
 
         actEqual.Should().Throw<ArgumentOutOfRangeException>();
         actGreater.Should().Throw<ArgumentOutOfRangeException>();

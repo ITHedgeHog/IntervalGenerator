@@ -4,7 +4,7 @@ namespace IntervalGenerator.Profiles;
 /// Consumption profile for retail facilities (stores, shopping centers).
 /// Characteristics: Extended hours (9am-9pm), weekend peaks, high lighting/refrigeration loads.
 /// </summary>
-public class RetailProfile : BaseConsumptionProfile
+public sealed class RetailProfile : BaseConsumptionProfile
 {
     private const decimal BaseLoadKwh = 90m; // Moderate-high baseline
     private const int OpeningHour = 9;
@@ -14,7 +14,7 @@ public class RetailProfile : BaseConsumptionProfile
     public override string BusinessType => "Retail";
 
     /// <inheritdoc />
-    public override decimal GetBaseLoad(DateTime date, int hour)
+    public override decimal GetBaseLoad(DateTime dateTime, int hour)
     {
         // During operating hours
         if (IsWithinBusinessHours(hour, OpeningHour, ClosingHour))
@@ -25,7 +25,7 @@ public class RetailProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetTimeOfDayModifier(DateTime date, int hour)
+    public override decimal GetTimeOfDayModifier(DateTime dateTime, int hour)
     {
         // Before opening: minimal consumption
         if (hour < OpeningHour)
@@ -52,9 +52,9 @@ public class RetailProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetDayOfWeekModifier(DateTime date)
+    public override decimal GetDayOfWeekModifier(DateTime dateTime)
     {
-        return date.DayOfWeek switch
+        return dateTime.DayOfWeek switch
         {
             DayOfWeek.Monday => 0.9m,     // Slower start of week
             DayOfWeek.Tuesday => 0.92m,   // Building up
@@ -68,9 +68,9 @@ public class RetailProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetSeasonalModifier(DateTime date)
+    public override decimal GetSeasonalModifier(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Holiday season (Nov-Dec): Peak shopping
         if (month == 11 || month == 12)

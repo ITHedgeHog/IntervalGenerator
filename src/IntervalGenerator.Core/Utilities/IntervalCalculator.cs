@@ -14,7 +14,7 @@ public static class IntervalCalculator
     /// <exception cref="ArgumentException">Thrown if intervalPeriod is invalid.</exception>
     public static int CalculatePeriodNumber(DateTime dateTime, Models.IntervalPeriod intervalPeriod)
     {
-        if (intervalPeriod != Models.IntervalPeriod.FifteenMinute && intervalPeriod != Models.IntervalPeriod.ThirtyMinute)
+        if (intervalPeriod != Models.IntervalPeriod.FiveMinute && intervalPeriod != Models.IntervalPeriod.FifteenMinute && intervalPeriod != Models.IntervalPeriod.ThirtyMinute)
         {
             throw new ArgumentException($"Invalid interval period: {intervalPeriod}", nameof(intervalPeriod));
         }
@@ -54,6 +54,13 @@ public static class IntervalCalculator
     {
         int periodMinutes = (int)intervalPeriod;
         int totalMinutes = periodNumber * periodMinutes;
+
+        // Handle day transitions - if total minutes is 1440 or more, go to next day
+        if (totalMinutes >= 1440)
+        {
+            return date.AddDays(1).Date; // Midnight of next day
+        }
+
         int hours = totalMinutes / 60;
         int minutes = totalMinutes % 60;
 
@@ -64,11 +71,12 @@ public static class IntervalCalculator
     /// Gets the total number of periods in a day for the given interval period.
     /// </summary>
     /// <param name="intervalPeriod">The interval period.</param>
-    /// <returns>Number of periods per day (48 for 30-min, 96 for 15-min).</returns>
+    /// <returns>Number of periods per day (288 for 5-min, 96 for 15-min, 48 for 30-min).</returns>
     public static int GetPeriodsPerDay(Models.IntervalPeriod intervalPeriod)
     {
         return intervalPeriod switch
         {
+            Models.IntervalPeriod.FiveMinute => 288,
             Models.IntervalPeriod.FifteenMinute => 96,
             Models.IntervalPeriod.ThirtyMinute => 48,
             _ => throw new ArgumentException($"Invalid interval period: {intervalPeriod}", nameof(intervalPeriod))

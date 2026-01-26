@@ -39,6 +39,22 @@ public class IntervalCalculatorTests
         result.Should().Be(expectedPeriod);
     }
 
+    [Theory]
+    [InlineData(0, 0, IntervalPeriod.FiveMinute, 1)]    // Midnight = period 1
+    [InlineData(0, 5, IntervalPeriod.FiveMinute, 2)]    // 00:05 = period 2
+    [InlineData(0, 10, IntervalPeriod.FiveMinute, 3)]   // 00:10 = period 3
+    [InlineData(12, 0, IntervalPeriod.FiveMinute, 145)] // Noon = period 145
+    [InlineData(23, 55, IntervalPeriod.FiveMinute, 288)] // 23:55 = period 288
+    public void CalculatePeriodNumber_FiveMinute_ReturnsCorrectPeriod(
+        int hour, int minute, IntervalPeriod period, int expectedPeriod)
+    {
+        var dateTime = new DateTime(2024, 1, 15, hour, minute, 0);
+
+        var result = IntervalCalculator.CalculatePeriodNumber(dateTime, period);
+
+        result.Should().Be(expectedPeriod);
+    }
+
     [Fact]
     public void CalculatePeriodNumber_InvalidPeriod_ThrowsArgumentException()
     {
@@ -88,6 +104,24 @@ public class IntervalCalculatorTests
         result.Minute.Should().Be(expectedMinute);
     }
 
+    [Theory]
+    [InlineData(1, IntervalPeriod.FiveMinute, 0, 0)]     // Period 1 starts at 00:00
+    [InlineData(2, IntervalPeriod.FiveMinute, 0, 5)]     // Period 2 starts at 00:05
+    [InlineData(3, IntervalPeriod.FiveMinute, 0, 10)]    // Period 3 starts at 00:10
+    [InlineData(145, IntervalPeriod.FiveMinute, 12, 0)]  // Period 145 starts at 12:00
+    [InlineData(288, IntervalPeriod.FiveMinute, 23, 55)] // Period 288 starts at 23:55
+    public void GetPeriodStartTime_FiveMinute_ReturnsCorrectTime(
+        int periodNumber, IntervalPeriod period, int expectedHour, int expectedMinute)
+    {
+        var date = new DateTime(2024, 1, 15);
+
+        var result = IntervalCalculator.GetPeriodStartTime(date, periodNumber, period);
+
+        result.Hour.Should().Be(expectedHour);
+        result.Minute.Should().Be(expectedMinute);
+        result.Second.Should().Be(0);
+    }
+
     #endregion
 
     #region GetPeriodEndTime Tests
@@ -110,6 +144,14 @@ public class IntervalCalculatorTests
     #endregion
 
     #region GetPeriodsPerDay Tests
+
+    [Fact]
+    public void GetPeriodsPerDay_FiveMinute_Returns288()
+    {
+        var result = IntervalCalculator.GetPeriodsPerDay(IntervalPeriod.FiveMinute);
+
+        result.Should().Be(288);
+    }
 
     [Fact]
     public void GetPeriodsPerDay_FifteenMinute_Returns96()
@@ -142,6 +184,10 @@ public class IntervalCalculatorTests
     #region IsValidPeriod Tests
 
     [Theory]
+    [InlineData(1, IntervalPeriod.FiveMinute, true)]
+    [InlineData(288, IntervalPeriod.FiveMinute, true)]
+    [InlineData(0, IntervalPeriod.FiveMinute, false)]
+    [InlineData(289, IntervalPeriod.FiveMinute, false)]
     [InlineData(1, IntervalPeriod.FifteenMinute, true)]
     [InlineData(96, IntervalPeriod.FifteenMinute, true)]
     [InlineData(0, IntervalPeriod.FifteenMinute, false)]
@@ -162,6 +208,7 @@ public class IntervalCalculatorTests
     #region Round-trip Tests
 
     [Theory]
+    [InlineData(IntervalPeriod.FiveMinute)]
     [InlineData(IntervalPeriod.FifteenMinute)]
     [InlineData(IntervalPeriod.ThirtyMinute)]
     public void PeriodStartTime_RoundTrip_CalculatesPeriodNumberCorrectly(IntervalPeriod period)

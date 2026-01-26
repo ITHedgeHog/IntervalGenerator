@@ -67,7 +67,7 @@ public class DeterministicRandomGeneratorTests
         var generator = new DeterministicRandomGenerator(42);
         const int max = 100;
 
-        var values = Enumerable.Range(0, 1000).Select(_ => generator.Next(max)).ToList();
+        var values = Enumerable.Range(0, 1000).Select(_ => generator.NextInt(max)).ToList();
 
         values.Should().AllSatisfy(v =>
         {
@@ -83,8 +83,8 @@ public class DeterministicRandomGeneratorTests
         var generator1 = new DeterministicRandomGenerator(seed);
         var generator2 = new DeterministicRandomGenerator(seed);
 
-        var sequence1 = Enumerable.Range(0, 50).Select(_ => generator1.Next(100)).ToList();
-        var sequence2 = Enumerable.Range(0, 50).Select(_ => generator2.Next(100)).ToList();
+        var sequence1 = Enumerable.Range(0, 50).Select(_ => generator1.NextInt(100)).ToList();
+        var sequence2 = Enumerable.Range(0, 50).Select(_ => generator2.NextInt(100)).ToList();
 
         sequence1.Should().BeEquivalentTo(sequence2, options => options.WithStrictOrdering());
     }
@@ -96,7 +96,7 @@ public class DeterministicRandomGeneratorTests
         const int min = 50;
         const int max = 100;
 
-        var values = Enumerable.Range(0, 1000).Select(_ => generator.Next(min, max)).ToList();
+        var values = Enumerable.Range(0, 1000).Select(_ => generator.NextInt(min, max)).ToList();
 
         values.Should().AllSatisfy(v =>
         {
@@ -110,8 +110,8 @@ public class DeterministicRandomGeneratorTests
     {
         var generator = new DeterministicRandomGenerator(42);
 
-        var actZero = () => generator.Next(0);
-        var actNegative = () => generator.Next(-1);
+        var actZero = () => generator.NextInt(0);
+        var actNegative = () => generator.NextInt(-1);
 
         actZero.Should().Throw<ArgumentOutOfRangeException>();
         actNegative.Should().Throw<ArgumentOutOfRangeException>();
@@ -122,8 +122,8 @@ public class DeterministicRandomGeneratorTests
     {
         var generator = new DeterministicRandomGenerator(42);
 
-        var actEqual = () => generator.Next(10, 10);
-        var actGreater = () => generator.Next(20, 10);
+        var actEqual = () => generator.NextInt(10, 10);
+        var actGreater = () => generator.NextInt(20, 10);
 
         actEqual.Should().Throw<ArgumentOutOfRangeException>();
         actGreater.Should().Throw<ArgumentOutOfRangeException>();

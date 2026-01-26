@@ -62,5 +62,5 @@ public record OutputOptions
     /// <summary>
     /// Whether to pretty-print JSON output.
     /// </summary>
-    public bool PrettyPrint { get; init; } = false;
+    public bool PrettyPrint { get; init; }
 }

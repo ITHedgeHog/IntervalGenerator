@@ -13,7 +13,7 @@ namespace IntervalGenerator.Output;
 /// MPAN,Site,MeasurementClass,Date,Period,HHC,AEI,QtyId
 /// 1266448934017,Site A,AI,2024-01-01,1,2.5,A,kWh
 /// </remarks>
-public class CsvOutputFormatter : IOutputFormatter
+public sealed class CsvOutputFormatter : IOutputFormatter
 {
     /// <inheritdoc />
     public string FormatName => "csv";
@@ -81,21 +81,21 @@ public class CsvOutputFormatter : IOutputFormatter
         csv.WriteField(reading.Mpan);
         csv.WriteField(siteName ?? "");
         csv.WriteField(reading.MeasurementClass.ToString());
-        csv.WriteField(reading.Timestamp.ToString("yyyy-MM-dd"));
+        csv.WriteField(reading.Timestamp.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
         csv.WriteField(reading.Period);
         csv.WriteField(reading.ConsumptionKwh);
         csv.WriteField(MapQualityFlagToAei(reading.QualityFlag));
         csv.WriteField(reading.UnitId);
     }
 
-    private static string MapQualityFlagToAei(DataQualityFlag flag)
+    private static string MapQualityFlagToAei(DataQuality flag)
     {
         return flag switch
         {
-            DataQualityFlag.Actual => "A",
-            DataQualityFlag.Estimated => "E",
-            DataQualityFlag.Missing => "M",
-            DataQualityFlag.Corrected => "X",
+            DataQuality.Actual => "A",
+            DataQuality.Estimated => "E",
+            DataQuality.Missing => "M",
+            DataQuality.Corrected => "X",
             _ => "A"
         };
     }

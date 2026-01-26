@@ -4,7 +4,7 @@ namespace IntervalGenerator.Profiles;
 /// Consumption profile for manufacturing plants.
 /// Characteristics: 24/7 operation, high baseline, minimal day-of-week variation, process-dependent loads.
 /// </summary>
-public class ManufacturingProfile : BaseConsumptionProfile
+public sealed class ManufacturingProfile : BaseConsumptionProfile
 {
     private const decimal BaseLoadKwh = 400m; // High baseline consumption
 
@@ -12,14 +12,14 @@ public class ManufacturingProfile : BaseConsumptionProfile
     public override string BusinessType => "Manufacturing";
 
     /// <inheritdoc />
-    public override decimal GetBaseLoad(DateTime date, int hour)
+    public override decimal GetBaseLoad(DateTime dateTime, int hour)
     {
         // Manufacturing typically runs 24/7 with consistent load
         return BaseLoadKwh;
     }
 
     /// <inheritdoc />
-    public override decimal GetTimeOfDayModifier(DateTime date, int hour)
+    public override decimal GetTimeOfDayModifier(DateTime dateTime, int hour)
     {
         // Manufacturing has relatively consistent consumption throughout the day
         // with slight variations for shift changes and maintenance windows
@@ -39,10 +39,10 @@ public class ManufacturingProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetDayOfWeekModifier(DateTime date)
+    public override decimal GetDayOfWeekModifier(DateTime dateTime)
     {
         // Manufacturing has minimal day-of-week variation (24/7 operation)
-        return date.DayOfWeek switch
+        return dateTime.DayOfWeek switch
         {
             DayOfWeek.Monday => 1.0m,
             DayOfWeek.Tuesday => 1.0m,
@@ -56,9 +56,9 @@ public class ManufacturingProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetSeasonalModifier(DateTime date)
+    public override decimal GetSeasonalModifier(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Summer: Cooling loads for facility
         if (month >= 6 && month <= 8)

@@ -12,19 +12,19 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     public abstract string BusinessType { get; }
 
     /// <inheritdoc />
-    public abstract decimal GetBaseLoad(DateTime date, int hour);
+    public abstract decimal GetBaseLoad(DateTime dateTime, int hour);
 
     /// <inheritdoc />
-    public abstract decimal GetTimeOfDayModifier(DateTime date, int hour);
+    public abstract decimal GetTimeOfDayModifier(DateTime dateTime, int hour);
 
     /// <inheritdoc />
-    public abstract decimal GetDayOfWeekModifier(DateTime date);
+    public abstract decimal GetDayOfWeekModifier(DateTime dateTime);
 
     /// <inheritdoc />
-    public virtual decimal GetSeasonalModifier(DateTime date)
+    public virtual decimal GetSeasonalModifier(DateTime dateTime)
     {
         // Default implementation: Northern hemisphere seasons
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Summer (Jun-Aug): +20% for AC
         if (month >= 6 && month <= 8)
@@ -53,7 +53,7 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// <param name="startHour">The start hour (inclusive).</param>
     /// <param name="endHour">The end hour (exclusive).</param>
     /// <returns>True if the hour is within business hours.</returns>
-    protected bool IsWithinBusinessHours(int hour, int startHour, int endHour)
+    protected static bool IsWithinBusinessHours(int hour, int startHour, int endHour)
     {
         return hour >= startHour && hour < endHour;
     }
@@ -61,11 +61,11 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// <summary>
     /// Checks if the date is a weekday (Monday-Friday).
     /// </summary>
-    /// <param name="date">The date to check.</param>
+    /// <param name="dateTime">The date to check.</param>
     /// <returns>True if weekday; false if weekend.</returns>
-    protected bool IsWeekday(DateTime date)
+    protected static bool IsWeekday(DateTime dateTime)
     {
-        return date.DayOfWeek >= DayOfWeek.Monday && date.DayOfWeek <= DayOfWeek.Friday;
+        return dateTime.DayOfWeek >= DayOfWeek.Monday && dateTime.DayOfWeek <= DayOfWeek.Friday;
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// <param name="startHour">The opening hour.</param>
     /// <param name="rampDurationHours">How many hours to ramp (default 1).</param>
     /// <returns>A multiplier between 0 and 1.</returns>
-    protected decimal GetRampUpFactor(int hour, int startHour, int rampDurationHours = 1)
+    protected static decimal GetRampUpFactor(int hour, int startHour, int rampDurationHours = 1)
     {
         if (hour < startHour)
             return 0.0m;
@@ -96,7 +96,7 @@ public abstract class BaseConsumptionProfile : IConsumptionProfile
     /// <param name="endHour">The closing hour.</param>
     /// <param name="rampDurationHours">How many hours to ramp (default 1).</param>
     /// <returns>A multiplier between 0 and 1.</returns>
-    protected decimal GetRampDownFactor(int hour, int endHour, int rampDurationHours = 1)
+    protected static decimal GetRampDownFactor(int hour, int endHour, int rampDurationHours = 1)
     {
         if (hour >= endHour)
             return 0.0m;

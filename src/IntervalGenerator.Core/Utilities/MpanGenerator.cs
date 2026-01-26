@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace IntervalGenerator.Core.Utilities;
 
 /// <summary>
@@ -21,10 +23,10 @@ public static class MpanGenerator
 
         // Convert hex to decimal representation
         // Using modulo to ensure we get a 13-digit number
-        ulong hexValue = ulong.Parse(mpanString, System.Globalization.NumberStyles.HexNumber);
+        ulong hexValue = ulong.Parse(mpanString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
         // Convert to 13-digit decimal string (pad with zeros if needed)
-        string mpan = (hexValue % 10000000000000).ToString("D13");
+        string mpan = (hexValue % 10000000000000).ToString("D13", CultureInfo.InvariantCulture);
 
         return mpan;
     }
@@ -50,7 +52,7 @@ public static class MpanGenerator
             {
                 counter++;
                 // Shift digits and append counter
-                uniqueMpan = (ulong.Parse(mpan) + (ulong)counter).ToString("D13");
+                uniqueMpan = (ulong.Parse(mpan, CultureInfo.InvariantCulture) + (ulong)counter).ToString("D13", CultureInfo.InvariantCulture);
             }
 
             result[meterId] = uniqueMpan;

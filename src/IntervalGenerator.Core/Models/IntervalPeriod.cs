@@ -6,6 +6,11 @@ namespace IntervalGenerator.Core.Models;
 public enum IntervalPeriod
 {
     /// <summary>
+    /// 5-minute intervals (288 periods per day).
+    /// </summary>
+    FiveMinute = 5,
+
+    /// <summary>
     /// 15-minute intervals (96 periods per day).
     /// </summary>
     FifteenMinute = 15,

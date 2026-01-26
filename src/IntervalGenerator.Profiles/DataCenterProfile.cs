@@ -4,7 +4,7 @@ namespace IntervalGenerator.Profiles;
 /// Consumption profile for data centers.
 /// Characteristics: 24/7 operation, highly consistent load, significant cooling requirements.
 /// </summary>
-public class DataCenterProfile : BaseConsumptionProfile
+public sealed class DataCenterProfile : BaseConsumptionProfile
 {
     private const decimal BaseLoadKwh = 500m; // High continuous load
 
@@ -12,14 +12,14 @@ public class DataCenterProfile : BaseConsumptionProfile
     public override string BusinessType => "DataCenter";
 
     /// <inheritdoc />
-    public override decimal GetBaseLoad(DateTime date, int hour)
+    public override decimal GetBaseLoad(DateTime dateTime, int hour)
     {
         // Data centers run 24/7 with consistent load
         return BaseLoadKwh;
     }
 
     /// <inheritdoc />
-    public override decimal GetTimeOfDayModifier(DateTime date, int hour)
+    public override decimal GetTimeOfDayModifier(DateTime dateTime, int hour)
     {
         // Data centers have very consistent consumption
         // Slight variations for backup systems and scheduled maintenance
@@ -33,16 +33,16 @@ public class DataCenterProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetDayOfWeekModifier(DateTime date)
+    public override decimal GetDayOfWeekModifier(DateTime dateTime)
     {
         // Data centers operate identically 7 days a week
         return 1.0m;
     }
 
     /// <inheritdoc />
-    public override decimal GetSeasonalModifier(DateTime date)
+    public override decimal GetSeasonalModifier(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Summer: Increased cooling load
         if (month >= 6 && month <= 8)

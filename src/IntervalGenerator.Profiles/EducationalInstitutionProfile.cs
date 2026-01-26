@@ -4,7 +4,7 @@ namespace IntervalGenerator.Profiles;
 /// Consumption profile for educational institutions (schools, universities).
 /// Characteristics: Term-time operation, scheduled occupancy, academic calendars.
 /// </summary>
-public class EducationalInstitutionProfile : BaseConsumptionProfile
+public sealed class EducationalInstitutionProfile : BaseConsumptionProfile
 {
     private const decimal BaseLoadKwh = 120m; // Moderate baseline
     private const int OpeningHour = 8;
@@ -14,11 +14,11 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     public override string BusinessType => "Educational";
 
     /// <inheritdoc />
-    public override decimal GetBaseLoad(DateTime date, int hour)
+    public override decimal GetBaseLoad(DateTime dateTime, int hour)
     {
         // Academic year: Sep-Jun
         // Reduced load during summer break (Jul-Aug)
-        bool isTermTime = IsTermTime(date);
+        bool isTermTime = IsTermTime(dateTime);
 
         if (!isTermTime)
             return BaseLoadKwh * 0.3m; // Minimal summer load
@@ -32,10 +32,10 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetTimeOfDayModifier(DateTime date, int hour)
+    public override decimal GetTimeOfDayModifier(DateTime dateTime, int hour)
     {
         // During term time only
-        if (!IsTermTime(date))
+        if (!IsTermTime(dateTime))
             return 0.3m; // Minimal consumption during breaks
 
         // Outside school hours: minimal
@@ -63,13 +63,13 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetDayOfWeekModifier(DateTime date)
+    public override decimal GetDayOfWeekModifier(DateTime dateTime)
     {
         // During summer break: no variation
-        if (!IsTermTime(date))
+        if (!IsTermTime(dateTime))
             return 1.0m;
 
-        return date.DayOfWeek switch
+        return dateTime.DayOfWeek switch
         {
             DayOfWeek.Monday => 1.0m,
             DayOfWeek.Tuesday => 1.05m,
@@ -83,12 +83,12 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     }
 
     /// <inheritdoc />
-    public override decimal GetSeasonalModifier(DateTime date)
+    public override decimal GetSeasonalModifier(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
 
         // Out of term time: Very low modifier
-        if (!IsTermTime(date))
+        if (!IsTermTime(dateTime))
             return 0.5m;
 
         // Summer term (May-Jun): Cooling load
@@ -123,9 +123,9 @@ public class EducationalInstitutionProfile : BaseConsumptionProfile
     /// Determines if a date falls within academic term time.
     /// Assumes: September-June (Sept=1, June=6 of academic year)
     /// </summary>
-    private bool IsTermTime(DateTime date)
+    private static bool IsTermTime(DateTime dateTime)
     {
-        int month = date.Month;
+        int month = dateTime.Month;
         // Sept (9) through June (6) is term time
         // July (7) and August (8) are summer break
         return month != 7 && month != 8;

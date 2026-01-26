@@ -16,14 +16,14 @@ public sealed class NonDeterministicRandomGenerator : IRandomNumberGenerator
     public double NextDouble() => Random.Shared.NextDouble();
 
     /// <inheritdoc />
-    public int Next(int max)
+    public int NextInt(int max)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(max);
         return Random.Shared.Next(max);
     }
 
     /// <inheritdoc />
-    public int Next(int min, int max)
+    public int NextInt(int min, int max)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(min, max);
         return Random.Shared.Next(min, max);

@@ -6,4 +6,4 @@ var rootCommand = new RootCommand("Smart Meter Interval Generator - Generate rea
     GenerateCommand.Create()
 };
 
-return await rootCommand.InvokeAsync(args);
+return rootCommand.Invoke(args);
