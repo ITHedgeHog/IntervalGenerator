@@ -1,0 +1,93 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3.0.0
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3.0.0
+        with:
+          useConfigFile: true
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ steps.gitversion.outputs.semVer }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fail if tag exists
+        if: steps.check_tag.outputs.exists == 'true'
+        run: |
+          echo "Error: Tag v${{ steps.gitversion.outputs.semVer }} already exists"
+          exit 1
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create git tag
+        run: |
+          git tag -a "v${{ steps.gitversion.outputs.semVer }}" -m "Release v${{ steps.gitversion.outputs.semVer }}"
+          git push origin "v${{ steps.gitversion.outputs.semVer }}"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.gitversion.outputs.semVer }}
+          release_name: Release ${{ steps.gitversion.outputs.semVer }}
+          body: |
+            ## Release Information
+
+            **Version:** ${{ steps.gitversion.outputs.semVer }}
+
+            **Version Details:**
+            - Major: ${{ steps.gitversion.outputs.major }}
+            - Minor: ${{ steps.gitversion.outputs.minor }}
+            - Patch: ${{ steps.gitversion.outputs.patch }}
+
+            ${{ inputs.release_notes && format('## Release Notes\n\n{0}', inputs.release_notes) || '## Release Notes\n\nNo additional notes provided.' }}
+          draft: false
+          prerelease: ${{ contains(steps.gitversion.outputs.semVer, '-') }}
+
+      - name: Release Summary
+        run: |
+          echo "## Release Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Major: ${{ steps.gitversion.outputs.major }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Minor: ${{ steps.gitversion.outputs.minor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Patch: ${{ steps.gitversion.outputs.patch }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This will trigger the Docker Release workflow to build and push images." >> $GITHUB_STEP_SUMMARY
