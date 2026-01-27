@@ -31,4 +31,5 @@ public class MeterGenerationSettings
     public string DefaultBusinessType { get; set; } = "Office";
     public bool DeterministicMode { get; set; } = true;
     public int Seed { get; set; } = 42;
+    public bool EnableDynamicGeneration { get; set; } = true;
 }
