@@ -16,6 +16,13 @@ A .NET-based smart meter interval data generator that produces realistic energy 
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) or later
 
+## Documentation
+
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deploy to Docker, Kubernetes, or with Garden.io
+- **[Configuration Reference](docs/CONFIGURATION.md)** - Complete configuration guide and environment variables
+- **[API Documentation](docs/API.md)** - REST API endpoint reference with examples
+- **[Development Guide](docs/DEVELOPMENT.md)** - Local setup, building, testing, and contributing
+
 ## Quick Start
 
 ### CLI Usage
