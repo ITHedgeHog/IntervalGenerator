@@ -11,8 +11,8 @@ public class ApiKeyAuthenticationMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ApiKeyAuthenticationMiddleware> _logger;
 
-    private const string ApiKeyHeader = "X-Api-Key";
-    private const string ApiPasswordHeader = "X-Api-Password";
+    private const string ApiKeyHeader = "Api-Key";
+    private const string ApiPasswordHeader = "Api-Password";
 
     public ApiKeyAuthenticationMiddleware(RequestDelegate next, ILogger<ApiKeyAuthenticationMiddleware> logger)
     {
@@ -24,13 +24,7 @@ public class ApiKeyAuthenticationMiddleware
     {
         var authSettings = settings.Value.Authentication;
 
-        // Skip authentication if disabled
-        if (!authSettings.Enabled)
-        {
-            await _next(context);
-            return;
-        }
-
+      
         // Skip authentication for health check and swagger endpoints
         var path = context.Request.Path.Value ?? "";
         if (path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
@@ -59,7 +53,7 @@ public class ApiKeyAuthenticationMiddleware
         }
 
         // Validate credentials
-        if (!ValidateCredentials(apiKey, apiPassword, authSettings))
+        if (authSettings.Enabled && !ValidateCredentials(apiKey, apiPassword, authSettings))
         {
             _logger.LogWarning("Invalid API credentials for request to {Path}", context.Request.Path);
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
