@@ -42,7 +42,8 @@ public class ConfigurableApiTestFixture : WebApplicationFactory<Program>
                 ["ApiSettings:MeterGeneration:DefaultEndDate"] = "2024-01-07", // 1 week for faster tests
                 ["ApiSettings:MeterGeneration:DefaultIntervalPeriod"] = _intervalPeriod.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ["ApiSettings:MeterGeneration:DeterministicMode"] = "true",
-                ["ApiSettings:MeterGeneration:Seed"] = "42"
+                ["ApiSettings:MeterGeneration:Seed"] = "42",
+                ["ApiSettings:MeterGeneration:EnableDynamicGeneration"] = "false" // Disable for tests to ensure strict validation
             };
 
             config.AddInMemoryCollection(testConfig);
@@ -52,8 +53,8 @@ public class ConfigurableApiTestFixture : WebApplicationFactory<Program>
     public HttpClient CreateAuthenticatedClient()
     {
         var client = CreateClient();
-        client.DefaultRequestHeaders.Add("X-Api-Key", TestApiKey);
-        client.DefaultRequestHeaders.Add("X-Api-Password", TestApiPassword);
+        client.DefaultRequestHeaders.Add("Api-Key", TestApiKey);
+        client.DefaultRequestHeaders.Add("Api-Password", TestApiPassword);
         return client;
     }
 

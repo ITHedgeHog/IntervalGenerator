@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using IntervalGenerator.Api.Data;
 using IntervalGenerator.Api.Models;
 using IntervalGenerator.Core.Models;
+using Microsoft.Extensions.Options;
 
 namespace IntervalGenerator.Api.Endpoints;
 
@@ -30,6 +31,7 @@ public static class FilteredMpanHhByPeriodEndpoint
         string? EndDate,
         string? MeasurementClass,
         IMeterDataStore store,
+        IOptions<ApiSettings> settings,
         HttpContext context)
     {
         // Validate MPAN parameter
@@ -43,15 +45,30 @@ public static class FilteredMpanHhByPeriodEndpoint
             });
         }
 
-        // Check if MPAN exists
+        // Check if MPAN exists, and generate if enabled
         if (!store.MpanExists(mpan))
         {
-            return Results.NotFound(new ErrorResponse
+            if (!settings.Value.MeterGeneration.EnableDynamicGeneration)
             {
-                Error = "Not Found",
-                Message = $"MPAN {mpan} not found",
-                Status = 404
-            });
+                return Results.NotFound(new ErrorResponse
+                {
+                    Error = "Not Found",
+                    Message = $"MPAN {mpan} not found",
+                    Status = 404
+                });
+            }
+
+            // Parse dates or use defaults for generation
+            var generationStartDate = TryParseDate(StartDate) ?? DateTime.Now.AddYears(-1);
+            var generationEndDate = TryParseDate(EndDate) ?? DateTime.Now;
+
+            // Ensure valid date range
+            if (generationEndDate < generationStartDate)
+            {
+                generationEndDate = generationStartDate.AddDays(1);
+            }
+
+            store.GenerateAndStoreMpan(mpan, generationStartDate, generationEndDate);
         }
 
         // Parse date range
@@ -196,5 +213,20 @@ public static class FilteredMpanHhByPeriodEndpoint
         }
 
         return Results.Text(string.Join(Environment.NewLine, lines), "text/csv");
+    }
+
+    private static DateTime? TryParseDate(string? dateString)
+    {
+        if (string.IsNullOrWhiteSpace(dateString))
+        {
+            return null;
+        }
+
+        if (DateTime.TryParse(dateString, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var result))
+        {
+            return result;
+        }
+
+        return null;
     }
 }

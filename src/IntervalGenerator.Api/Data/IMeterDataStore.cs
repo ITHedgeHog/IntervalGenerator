@@ -38,6 +38,11 @@ public interface IMeterDataStore
     bool MpanExists(string mpan);
 
     /// <summary>
+    /// Generate and store meter data for a new MPAN.
+    /// </summary>
+    void GenerateAndStoreMpan(string mpan, DateTime startDate, DateTime endDate);
+
+    /// <summary>
     /// Get the total count of meters in the store.
     /// </summary>
     int MeterCount { get; }

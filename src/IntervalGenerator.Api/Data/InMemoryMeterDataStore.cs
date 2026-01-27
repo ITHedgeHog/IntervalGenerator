@@ -7,6 +7,7 @@ using IntervalGenerator.Core.Services;
 using IntervalGenerator.Core.Utilities;
 using IntervalGenerator.Profiles;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace IntervalGenerator.Api.Data;
 
@@ -19,6 +20,7 @@ public sealed class InMemoryMeterDataStore : IMeterDataStore
     private readonly ILogger<InMemoryMeterDataStore> _logger;
     private readonly ConcurrentDictionary<string, List<IntervalReading>> _readings = new();
     private readonly ConcurrentDictionary<string, MeterDetails> _meterDetails = new();
+    private readonly IOptions<ApiSettings> _settingsOptions;
     private bool _isInitialized;
 
     // Business types to cycle through for varied profiles
@@ -29,9 +31,10 @@ public sealed class InMemoryMeterDataStore : IMeterDataStore
     private static readonly string[] Cities = ["London", "Manchester", "Birmingham", "Leeds", "Bristol", "Liverpool", "Sheffield", "Newcastle", "Edinburgh", "Cardiff"];
     private static readonly string[] PostCodes = ["SW1A 1AA", "M1 1AE", "B1 1AA", "LS1 1BA", "BS1 1AA", "L1 1JD", "S1 1AA", "NE1 1AA", "EH1 1AA", "CF10 1AA"];
 
-    public InMemoryMeterDataStore(ILogger<InMemoryMeterDataStore> logger)
+    public InMemoryMeterDataStore(ILogger<InMemoryMeterDataStore> logger, IOptions<ApiSettings> settingsOptions)
     {
         _logger = logger;
+        _settingsOptions = settingsOptions ?? throw new ArgumentNullException(nameof(settingsOptions));
     }
 
     public bool IsInitialized => _isInitialized;
@@ -180,5 +183,83 @@ public sealed class InMemoryMeterDataStore : IMeterDataStore
     public bool MpanExists(string mpan)
     {
         return _meterDetails.ContainsKey(mpan);
+    }
+
+    public void GenerateAndStoreMpan(string mpan, DateTime startDate, DateTime endDate)
+    {
+        if (MpanExists(mpan))
+        {
+            return; // Already exists, skip generation
+        }
+
+        var settings = _settingsOptions.Value;
+
+        // Generate deterministic meter ID based on MPAN hash for consistency
+        var meterId = GenerateDeterministicGuid(settings.MeterGeneration.Seed, mpan.GetHashCode());
+
+        // Determine business type (cycle through available types)
+        var businessTypeIndex = Math.Abs(mpan.GetHashCode()) % BusinessTypes.Length;
+        var businessType = BusinessTypes[businessTypeIndex];
+
+        // Get the profile for this business type
+        var registry = new ProfileRegistry();
+        var profile = registry.GetProfile(businessType);
+
+        // Create random generator with deterministic seed if enabled
+        var random = RandomGeneratorFactory.Create(new GenerationConfiguration
+        {
+            StartDate = startDate,
+            EndDate = endDate,
+            Period = IntervalPeriod.ThirtyMinute,
+            BusinessType = businessType,
+            Seed = mpan.GetHashCode(),
+            Deterministic = settings.MeterGeneration.DeterministicMode
+        });
+
+        // Create engine with the appropriate profile and random generator
+        var engine = new IntervalGeneratorEngine(profile, random);
+
+        // Generate readings using the engine
+        var readings = engine.GenerateReadings(
+            meterId,
+            mpan,
+            startDate,
+            endDate,
+            IntervalPeriod.ThirtyMinute,
+            MeasurementClass.AI).ToList();
+
+        // Store readings
+        _readings[mpan] = readings;
+
+        // Generate meter details
+        var addressIndex = Math.Abs(mpan.GetHashCode()) % Streets.Length;
+        var meterIndex = Math.Abs(mpan.GetHashCode());
+
+        var details = new MeterDetails
+        {
+            Mpan = mpan,
+            MeterId = meterId,
+            SiteName = $"Dynamically Generated {businessType} - {mpan}",
+            BusinessType = businessType,
+            Capacity = ((meterIndex % 5 + 1) * 100).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            Address = new MeterAddress
+            {
+                Line1 = $"{(meterIndex % 100 + 1) * 10} {Streets[addressIndex]}",
+                Line2 = $"Unit {meterIndex % 50 + 1}",
+                Line3 = Cities[addressIndex],
+                PostCode = PostCodes[addressIndex]
+            },
+            SupplierId = $"SUPPLIER{(meterIndex % 10 + 1):D3}",
+            AssetProviderId = $"PROVIDER{(meterIndex % 5 + 1):D3}"
+        };
+
+        _meterDetails[mpan] = details;
+
+        _logger.LogInformation(
+            "Dynamically generated MPAN {Mpan} with {ReadingCount:N0} readings from {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}",
+            mpan,
+            readings.Count,
+            startDate,
+            endDate);
     }
 }

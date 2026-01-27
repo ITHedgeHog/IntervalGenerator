@@ -1,5 +1,6 @@
 using IntervalGenerator.Api.Data;
 using IntervalGenerator.Api.Models;
+using Microsoft.Extensions.Options;
 
 namespace IntervalGenerator.Api.Endpoints;
 
@@ -24,6 +25,7 @@ public static class MpanAdditionalDetailsEndpoint
     private static IResult HandleRequest(
         string mpan,
         IMeterDataStore store,
+        IOptions<ApiSettings> settings,
         HttpContext context)
     {
         // Validate MPAN parameter
@@ -37,17 +39,39 @@ public static class MpanAdditionalDetailsEndpoint
             });
         }
 
-        // Get meter details
+        // Get meter details, generate if needed
         var details = store.GetMeterDetails(mpan);
 
         if (details == null)
         {
-            return Results.NotFound(new ErrorResponse
+            if (!settings.Value.MeterGeneration.EnableDynamicGeneration)
             {
-                Error = "Not Found",
-                Message = $"MPAN {mpan} not found",
-                Status = 404
-            });
+                return Results.NotFound(new ErrorResponse
+                {
+                    Error = "Not Found",
+                    Message = $"MPAN {mpan} not found",
+                    Status = 404
+                });
+            }
+
+            // Generate 3 years of data (last 3 years from today)
+            var endDate = DateTime.Now.Date.AddDays(1).AddTicks(-1); // End of today
+            var startDate = endDate.AddYears(-3);
+
+            store.GenerateAndStoreMpan(mpan, startDate, endDate);
+
+            // Get the newly generated details
+            details = store.GetMeterDetails(mpan);
+
+            if (details == null)
+            {
+                return Results.NotFound(new ErrorResponse
+                {
+                    Error = "Not Found",
+                    Message = $"Failed to generate MPAN {mpan}",
+                    Status = 404
+                });
+            }
         }
 
         // Build response

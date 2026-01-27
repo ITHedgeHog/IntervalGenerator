@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using IntervalGenerator.Api.Data;
 using IntervalGenerator.Api.Models;
 using IntervalGenerator.Core.Models;
+using Microsoft.Extensions.Options;
 
 namespace IntervalGenerator.Api.Endpoints;
 
@@ -27,6 +28,7 @@ public static class MpanHhPerPeriodEndpoint
     private static IResult HandleRequest(
         string mpan,
         IMeterDataStore store,
+        IOptions<ApiSettings> settings,
         HttpContext context)
     {
         // Validate MPAN parameter
@@ -40,15 +42,24 @@ public static class MpanHhPerPeriodEndpoint
             });
         }
 
-        // Check if MPAN exists
+        // Check if MPAN exists, and generate if enabled
         if (!store.MpanExists(mpan))
         {
-            return Results.NotFound(new ErrorResponse
+            if (!settings.Value.MeterGeneration.EnableDynamicGeneration)
             {
-                Error = "Not Found",
-                Message = $"MPAN {mpan} not found",
-                Status = 404
-            });
+                return Results.NotFound(new ErrorResponse
+                {
+                    Error = "Not Found",
+                    Message = $"MPAN {mpan} not found",
+                    Status = 404
+                });
+            }
+
+            // Generate 3 years of data (last 3 years from today)
+            var endDate = DateTime.Now.Date.AddDays(1).AddTicks(-1); // End of today
+            var startDate = endDate.AddYears(-3);
+
+            store.GenerateAndStoreMpan(mpan, startDate, endDate);
         }
 
         // Get readings and meter details
