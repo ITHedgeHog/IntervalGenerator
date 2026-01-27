@@ -6,7 +6,7 @@ on:
 
 env:
   DOCKERHUB_REGISTRY: docker.io
-  DOCKERHUB_IMAGE_NAME: ithedgehog/${{ github.event.repository.name }}
+  DOCKERHUB_IMAGE_NAME: ithedgehog/intervalgenerator
 
 jobs:
   build-and-push:
