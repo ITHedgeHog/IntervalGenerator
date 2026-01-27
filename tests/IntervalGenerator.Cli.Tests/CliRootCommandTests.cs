@@ -1,8 +1,9 @@
 using System.CommandLine;
-using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using IntervalGenerator.Cli.Commands;
 
+// CA1861: Prefer 'static readonly' fields over constant array arguments
+// Suppressed for test readability - inline arrays in test assertions improve clarity and are acceptable
 #pragma warning disable CA1861
 
 namespace IntervalGenerator.Cli.Tests;

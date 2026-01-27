@@ -124,8 +124,7 @@ public class OutputValidationTests
                 var columns = line.Split(',');
                 var mpan = columns[0];
                 mpan.Should().HaveLength(13, "MPAN should be 13 digits");
-                mpan.Should().Match("*", "MPAN should contain only digits");
-                long.TryParse(mpan, out _).Should().BeTrue();
+                long.TryParse(mpan, out _).Should().BeTrue("MPAN should contain only digits");
             }
         }
         finally
