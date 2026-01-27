@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: interval-generator-config
+  namespace: default
+  labels:
+    app: interval-generator
+data:
+  # ASP.NET Core settings
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:8080"
+
+  # Logging settings
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+
+  # Meter generation settings
+  ApiSettings__MeterGeneration__DefaultMeterCount: "100"
+  ApiSettings__MeterGeneration__DefaultStartDate: "2024-01-01"
+  ApiSettings__MeterGeneration__DefaultEndDate: "2024-12-31"
+  ApiSettings__MeterGeneration__DefaultIntervalPeriod: "30"
+  ApiSettings__MeterGeneration__DefaultBusinessType: "Office"
+  ApiSettings__MeterGeneration__DeterministicMode: "true"
+  ApiSettings__MeterGeneration__Seed: "42"
+  ApiSettings__MeterGeneration__EnableDynamicGeneration: "true"
+
+  # Authentication settings (note: sensitive values should be in Secret)
+  ApiSettings__Authentication__Enabled: "true"

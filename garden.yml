@@ -1,0 +1,141 @@
+# Garden.io Configuration for IntervalGenerator
+#
+# This file defines the Garden project, build configuration,
+# deployment configuration, and test workflows.
+#
+# For more info: https://docs.garden.io/
+
+kind: Project
+name: interval-generator
+defaultEnvironment: dev
+
+# Environments define deployment targets
+environments:
+  - name: dev
+    # Set Kubernetes context for local/dev cluster
+    # Default: uses current kubectl context
+  - name: staging
+    # Set Kubernetes context for staging cluster
+  - name: prod
+    # Set Kubernetes context for production cluster
+
+# Providers configure how Garden interacts with Kubernetes
+providers:
+  - name: kubernetes
+    # Set the kubeconfig context for this environment
+    # Can also be set via GARDEN_KUBE_CONTEXT environment variable
+    # Or override via: garden deploy --env <env> --kubeconfig-context <context>
+    kubeConfig:
+      # Comment out to use current kubectl context
+      # context: docker-desktop
+    namespace: default
+
+---
+# Build configuration for the Docker image
+kind: Build
+name: api
+type: container
+spec:
+  dockerfile: Dockerfile
+  # Tag with version from Garden project
+  targetImage: ithedgehog/intervalgenerator:${project.version}
+
+---
+# Deploy configuration for Kubernetes
+kind: Deploy
+name: api
+type: kubernetes
+# Builds this service depends on
+build: api
+# Services this depends on (none for API)
+dependencies: []
+spec:
+  # Kubernetes manifest files to apply
+  files:
+    - k8s/deployment.yaml
+    - k8s/service.yaml
+    - k8s/configmap.yaml
+
+  # Patches to apply to resources before deploying
+  # This allows using the built image automatically
+  patchResources:
+    - name: interval-generator
+      kind: Deployment
+      patch:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: api
+                  # Use the image built by the build action
+                  image: ${actions.build.api.outputs.deploymentImageId}
+
+  # Port forwarding for local access
+  portForwards:
+    - name: http
+      resource: Deployment/interval-generator
+      targetPort: 8080
+      localPort: 8080
+
+---
+# Health check test
+kind: Test
+name: api-health
+type: container
+# Depends on the deployment being ready
+dependencies:
+  - deploy.api
+spec:
+  image: curlimages/curl:latest
+  # Test command - curl the health endpoint
+  command:
+    - /bin/sh
+    - -c
+    - |
+      # Wait for service to be available
+      for i in {1..30}; do
+        if curl -f http://interval-generator-service/health; then
+          echo "✓ Health check passed"
+          exit 0
+        fi
+        echo "Attempt $i: Health check failed, retrying..."
+        sleep 2
+      done
+      echo "✗ Health check failed after retries"
+      exit 1
+
+---
+# API connectivity test
+kind: Test
+name: api-connectivity
+type: container
+dependencies:
+  - deploy.api
+spec:
+  image: curlimages/curl:latest
+  command:
+    - /bin/sh
+    - -c
+    - |
+      # Test root endpoint
+      echo "Testing API info endpoint..."
+      curl -f http://interval-generator-service/ || exit 1
+      echo "✓ API connectivity test passed"
+
+---
+# MPANs list test
+kind: Test
+name: api-mpans
+type: container
+dependencies:
+  - deploy.api
+spec:
+  image: curlimages/curl:latest
+  command:
+    - /bin/sh
+    - -c
+    - |
+      # Test MPAN listing endpoint
+      echo "Testing MPAN list endpoint..."
+      curl -f http://interval-generator-service/mpans || exit 1
+      echo "✓ MPAN list endpoint test passed"
