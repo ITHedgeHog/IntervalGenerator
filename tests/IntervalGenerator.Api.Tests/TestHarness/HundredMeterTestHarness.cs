@@ -247,21 +247,26 @@ public class HundredMeterTestHarness : IClassFixture<ApiTestFixture>
             foreach (var date in mc.Value)
             {
                 var periodCount = date.Value.Count;
-                periodCount.Should().Be(48, $"Date {date.Key} should have 48 periods for 30-min intervals");
+                periodCount.Should().Be(50, $"Date {date.Key} should have 50 periods (P1-P48 plus P49/P50)");
 
-                // Verify period numbers are 1-48
-                var periods = date.Value.Keys.Select(int.Parse).OrderBy(p => p).ToList();
-                periods.First().Should().Be(1);
-                periods.Last().Should().Be(48);
+                // Verify period keys are P1-P50
+                date.Value.Keys.Should().Contain("P1");
+                date.Value.Keys.Should().Contain("P48");
+                date.Value.Keys.Should().Contain("P49");
+                date.Value.Keys.Should().Contain("P50");
 
-                // Verify all period data has required fields
-                foreach (var period in date.Value.Values)
+                // Verify P1-P48 period data has required fields with values
+                for (int i = 1; i <= 48; i++)
                 {
-                    period.Period.Should().BeInRange(1, 48);
-                    period.Hhc.Should().BeGreaterThanOrEqualTo(0);
-                    period.Aei.Should().BeOneOf("A", "E", "M", "X");
-                    period.QtyId.Should().Be("kWh");
+                    var period = date.Value[$"P{i}"];
+                    period.HHC.Should().NotBeNull();
+                    decimal.Parse(period.HHC!, System.Globalization.CultureInfo.InvariantCulture).Should().BeGreaterThanOrEqualTo(0);
+                    period.AEI.Should().BeOneOf("A", "E", "M", "X");
                 }
+
+                // Verify P49/P50 have null values
+                date.Value["P49"].HHC.Should().BeNull();
+                date.Value["P50"].HHC.Should().BeNull();
             }
         }
 

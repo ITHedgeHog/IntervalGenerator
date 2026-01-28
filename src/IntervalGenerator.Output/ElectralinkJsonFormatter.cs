@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using IntervalGenerator.Core.Models;
 
 namespace IntervalGenerator.Output;
@@ -12,11 +11,12 @@ namespace IntervalGenerator.Output;
 /// Produces nested JSON structure:
 /// {
 ///   "MPAN": "1266448934017",
-///   "site": "Site Name",
 ///   "MC": {
 ///     "AI": {
 ///       "2024-01-01": {
-///         "1": { "period": 1, "hhc": 2.5, "aei": "A", "qty_id": "kWh" }
+///         "P1": { "HHC": "2.5", "AEI": "A" },
+///         "P49": { "HHC": null, "AEI": null },
+///         "P50": { "HHC": null, "AEI": null }
 ///       }
 ///     }
 ///   }
@@ -27,15 +27,13 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
     private static readonly JsonSerializerOptions DefaultOptions = new()
     {
         WriteIndented = false,
-        PropertyNamingPolicy = null,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        PropertyNamingPolicy = null
     };
 
     private static readonly JsonSerializerOptions PrettyPrintOptions = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = null,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        PropertyNamingPolicy = null
     };
 
     /// <inheritdoc />
@@ -85,7 +83,6 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
             var output = new HhPerPeriodOutput
             {
                 MPAN = mpanGroup.Key,
-                Site = siteName ?? "",
                 MC = BuildMeasurementClassStructure(mpanGroup)
             };
             meterOutputs.Add(output);
@@ -118,13 +115,21 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
 
                 foreach (var reading in dateGroup.OrderBy(r => r.Period))
                 {
-                    periodDict[reading.Period.ToString(CultureInfo.InvariantCulture)] = new PeriodData
+                    var periodKey = $"P{reading.Period}";
+                    periodDict[periodKey] = new PeriodData
                     {
-                        Period = reading.Period,
-                        Hhc = reading.ConsumptionKwh,
-                        Aei = MapQualityFlagToAei(reading.QualityFlag),
-                        QtyId = reading.UnitId
+                        HHC = reading.ConsumptionKwh.ToString(CultureInfo.InvariantCulture),
+                        AEI = MapQualityFlagToAei(reading.QualityFlag)
                     };
+                }
+
+                // Add P49 and P50 with null values for 30-minute intervals (48 periods)
+                // Electralink format includes P49/P50 padding for 30-minute interval data
+                var maxPeriod = dateGroup.Max(r => r.Period);
+                if (maxPeriod <= 48)
+                {
+                    periodDict["P49"] = new PeriodData { HHC = null, AEI = null };
+                    periodDict["P50"] = new PeriodData { HHC = null, AEI = null };
                 }
 
                 dateDict[dateGroup.Key.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)] = periodDict;
@@ -154,25 +159,14 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
     {
         public required string MPAN { get; set; }
 
-        [JsonPropertyName("site")]
-        public required string Site { get; set; }
-
         public required Dictionary<string, Dictionary<string, Dictionary<string, PeriodData>>> MC { get; set; }
     }
 
     private sealed class PeriodData
     {
-        [JsonPropertyName("period")]
-        public int Period { get; set; }
+        public string? HHC { get; set; }
 
-        [JsonPropertyName("hhc")]
-        public decimal Hhc { get; set; }
-
-        [JsonPropertyName("aei")]
-        public required string Aei { get; set; }
-
-        [JsonPropertyName("qty_id")]
-        public required string QtyId { get; set; }
+        public string? AEI { get; set; }
     }
 
     #endregion

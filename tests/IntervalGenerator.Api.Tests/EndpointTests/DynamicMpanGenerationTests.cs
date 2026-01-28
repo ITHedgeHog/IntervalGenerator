@@ -254,14 +254,18 @@ public class DynamicMpanGenerationTests : IClassFixture<DynamicGenerationTestFix
 
             foreach (var dateKey in data1.MC[mcKey].Keys)
             {
-                var periods1 = data1.MC[mcKey][dateKey].Values.OrderBy(p => p.Period).ToList();
-                var periods2 = data2.MC[mcKey][dateKey].Values.OrderBy(p => p.Period).ToList();
+                // Period keys are now P1, P2, etc.
+                var periodKeys1 = data1.MC[mcKey][dateKey].Keys.OrderBy(k => k).ToList();
+                var periodKeys2 = data2.MC[mcKey][dateKey].Keys.OrderBy(k => k).ToList();
 
-                periods1.Count.Should().Be(periods2.Count);
+                periodKeys1.Should().BeEquivalentTo(periodKeys2);
 
-                for (int i = 0; i < periods1.Count; i++)
+                foreach (var periodKey in periodKeys1)
                 {
-                    periods1[i].Hhc.Should().Be(periods2[i].Hhc,
+                    var period1 = data1.MC[mcKey][dateKey][periodKey];
+                    var period2 = data2.MC[mcKey][dateKey][periodKey];
+
+                    period1.HHC.Should().Be(period2.HHC,
                         $"Period consumption should be identical in deterministic mode");
                 }
             }

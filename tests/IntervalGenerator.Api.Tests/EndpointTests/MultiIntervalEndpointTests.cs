@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using IntervalGenerator.Api.Endpoints;
 using IntervalGenerator.Api.Models;
@@ -5,6 +6,16 @@ using IntervalGenerator.Api.Tests.TestHarness;
 using Xunit;
 
 namespace IntervalGenerator.Api.Tests.EndpointTests;
+
+internal static class PeriodTestHelper
+{
+    private static readonly int[] PaddingPeriods = [49, 50];
+
+    public static int[] GetExpectedPeriods(int maxPeriod)
+    {
+        return Enumerable.Range(1, maxPeriod).Concat(PaddingPeriods).ToArray();
+    }
+}
 
 /// <summary>
 /// Tests API endpoints with 5-minute interval data.
@@ -37,8 +48,13 @@ public class FiveMinuteIntervalEndpointTests : IClassFixture<FiveMinuteApiTestFi
         {
             foreach (var dateData in mc.Values)
             {
+                // 288 periods (5-minute intervals - no P49/P50 padding for non-30-min intervals)
                 dateData.Count.Should().Be(288, "5-minute intervals should have 288 periods per day");
-                var periodNumbers = dateData.Keys.Select(int.Parse).OrderBy(p => p).ToList();
+                var periodNumbers = dateData.Keys
+                    .Where(k => k.StartsWith('P'))
+                    .Select(k => int.Parse(k.AsSpan(1), CultureInfo.InvariantCulture))
+                    .OrderBy(p => p)
+                    .ToList();
                 periodNumbers.Should().ContainInOrder(Enumerable.Range(1, 288));
             }
         }
@@ -117,8 +133,13 @@ public class FifteenMinuteIntervalEndpointTests : IClassFixture<FifteenMinuteApi
         {
             foreach (var dateData in mc.Values)
             {
+                // 96 periods (15-minute intervals - no P49/P50 padding for non-30-min intervals)
                 dateData.Count.Should().Be(96, "15-minute intervals should have 96 periods per day");
-                var periodNumbers = dateData.Keys.Select(int.Parse).OrderBy(p => p).ToList();
+                var periodNumbers = dateData.Keys
+                    .Where(k => k.StartsWith('P'))
+                    .Select(k => int.Parse(k.AsSpan(1), CultureInfo.InvariantCulture))
+                    .OrderBy(p => p)
+                    .ToList();
                 periodNumbers.Should().ContainInOrder(Enumerable.Range(1, 96));
             }
         }
@@ -197,9 +218,14 @@ public class ThirtyMinuteIntervalEndpointTests : IClassFixture<ThirtyMinuteApiTe
         {
             foreach (var dateData in mc.Values)
             {
-                dateData.Count.Should().Be(48, "30-minute intervals should have 48 periods per day");
-                var periodNumbers = dateData.Keys.Select(int.Parse).OrderBy(p => p).ToList();
-                periodNumbers.Should().ContainInOrder(Enumerable.Range(1, 48));
+                // 48 periods + P49/P50 = 50 total
+                dateData.Count.Should().Be(50, "30-minute intervals should have 48 periods + P49/P50");
+                var periodNumbers = dateData.Keys
+                    .Where(k => k.StartsWith('P'))
+                    .Select(k => int.Parse(k.AsSpan(1), CultureInfo.InvariantCulture))
+                    .OrderBy(p => p)
+                    .ToList();
+                periodNumbers.Should().ContainInOrder(PeriodTestHelper.GetExpectedPeriods(48));
             }
         }
     }

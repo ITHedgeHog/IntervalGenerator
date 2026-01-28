@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using IntervalGenerator.Api.Data;
 using IntervalGenerator.Api.Models;
 using IntervalGenerator.Core.Models;
@@ -85,8 +84,7 @@ public static class MpanHhPerPeriodEndpoint
         var options = new JsonSerializerOptions
         {
             WriteIndented = true,
-            PropertyNamingPolicy = null,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            PropertyNamingPolicy = null
         };
 
         return Results.Json(response, options);
@@ -105,7 +103,6 @@ public static class MpanHhPerPeriodEndpoint
             return new HhPerPeriodResponse
             {
                 MPAN = "",
-                Site = siteName,
                 MC = new Dictionary<string, Dictionary<string, Dictionary<string, PeriodData>>>()
             };
         }
@@ -127,13 +124,21 @@ public static class MpanHhPerPeriodEndpoint
 
                 foreach (var reading in dateGroup.OrderBy(r => r.Period))
                 {
-                    periodDict[reading.Period.ToString(System.Globalization.CultureInfo.InvariantCulture)] = new PeriodData
+                    var periodKey = $"P{reading.Period}";
+                    periodDict[periodKey] = new PeriodData
                     {
-                        Period = reading.Period,
-                        Hhc = reading.ConsumptionKwh,
-                        Aei = MapQualityFlag(reading.QualityFlag),
-                        QtyId = reading.UnitId
+                        HHC = reading.ConsumptionKwh.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        AEI = MapQualityFlag(reading.QualityFlag)
                     };
+                }
+
+                // Add P49 and P50 with null values for 30-minute intervals (48 periods)
+                // Electralink format includes P49/P50 padding for 30-minute interval data
+                var maxPeriod = dateGroup.Max(r => r.Period);
+                if (maxPeriod <= 48)
+                {
+                    periodDict["P49"] = new PeriodData { HHC = null, AEI = null };
+                    periodDict["P50"] = new PeriodData { HHC = null, AEI = null };
                 }
 
                 dateDict[dateGroup.Key.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)] = periodDict;
@@ -145,7 +150,6 @@ public static class MpanHhPerPeriodEndpoint
         return new HhPerPeriodResponse
         {
             MPAN = mpan,
-            Site = siteName,
             MC = mcDict
         };
     }
@@ -180,31 +184,22 @@ public static class MpanHhPerPeriodEndpoint
 
 /// <summary>
 /// Response model for HHPerPeriod endpoint.
+/// Matches Electralink API format.
 /// </summary>
 public class HhPerPeriodResponse
 {
     public required string MPAN { get; set; }
-
-    [JsonPropertyName("site")]
-    public required string Site { get; set; }
 
     public required Dictionary<string, Dictionary<string, Dictionary<string, PeriodData>>> MC { get; set; }
 }
 
 /// <summary>
 /// Period data for HHPerPeriod response.
+/// Matches Electralink API format with uppercase field names and string values.
 /// </summary>
 public class PeriodData
 {
-    [JsonPropertyName("period")]
-    public int Period { get; set; }
+    public string? HHC { get; set; }
 
-    [JsonPropertyName("hhc")]
-    public decimal Hhc { get; set; }
-
-    [JsonPropertyName("aei")]
-    public required string Aei { get; set; }
-
-    [JsonPropertyName("qty_id")]
-    public required string QtyId { get; set; }
+    public string? AEI { get; set; }
 }
