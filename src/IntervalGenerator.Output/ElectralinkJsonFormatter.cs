@@ -123,9 +123,14 @@ public sealed class ElectralinkJsonFormatter : IOutputFormatter
                     };
                 }
 
-                // Add P49 and P50 with null values (Electralink format includes these)
-                periodDict["P49"] = new PeriodData { HHC = null, AEI = null };
-                periodDict["P50"] = new PeriodData { HHC = null, AEI = null };
+                // Add P49 and P50 with null values for 30-minute intervals (48 periods)
+                // Electralink format includes P49/P50 padding for 30-minute interval data
+                var maxPeriod = dateGroup.Max(r => r.Period);
+                if (maxPeriod <= 48)
+                {
+                    periodDict["P49"] = new PeriodData { HHC = null, AEI = null };
+                    periodDict["P50"] = new PeriodData { HHC = null, AEI = null };
+                }
 
                 dateDict[dateGroup.Key.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)] = periodDict;
             }
