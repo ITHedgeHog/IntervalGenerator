@@ -357,10 +357,17 @@ public class OutputValidationTests
             var content = File.ReadAllText(tempFile);
             var doc = JsonDocument.Parse(content);
 
-            // Assert - Check object has expected properties
+            // Assert - Check object has expected properties (Electralink format)
             doc.RootElement.TryGetProperty("MPAN", out _).Should().BeTrue();
-            doc.RootElement.TryGetProperty("site", out _).Should().BeTrue();
             doc.RootElement.TryGetProperty("MC", out _).Should().BeTrue();
+
+            // Verify period keys are P-prefixed
+            var mc = doc.RootElement.GetProperty("MC");
+            var ai = mc.GetProperty("AI");
+            var firstDate = ai.EnumerateObject().First();
+            firstDate.Value.TryGetProperty("P1", out _).Should().BeTrue("Period keys should be P-prefixed");
+            firstDate.Value.TryGetProperty("P49", out _).Should().BeTrue("P49 should be present");
+            firstDate.Value.TryGetProperty("P50", out _).Should().BeTrue("P50 should be present");
         }
         finally
         {

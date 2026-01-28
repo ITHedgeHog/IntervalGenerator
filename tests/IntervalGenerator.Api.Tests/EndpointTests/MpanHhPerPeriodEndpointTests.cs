@@ -47,7 +47,6 @@ public class MpanHhPerPeriodEndpointTests : IClassFixture<ApiTestFixture>
         // Assert
         data.Should().NotBeNull();
         data!.MPAN.Should().Be(testMpan);
-        data.Site.Should().NotBeNull();
         data.MC.Should().NotBeNull();
         data.MC.Should().ContainKey("AI"); // Should have Active Import
     }
@@ -106,13 +105,13 @@ public class MpanHhPerPeriodEndpointTests : IClassFixture<ApiTestFixture>
         var response = await _client.GetAsync($"/v2/mpanhhperperiod?mpan={testMpan}");
         var data = await response.Content.ReadFromJsonAsync<HhPerPeriodResponse>();
 
-        // Assert - each day should have 48 periods for 30-min intervals
+        // Assert - each day should have 50 periods (P1-P48 + P49/P50 with null values)
         data.Should().NotBeNull();
         foreach (var mc in data!.MC.Values)
         {
             foreach (var dateData in mc.Values)
             {
-                dateData.Count.Should().Be(48);
+                dateData.Count.Should().Be(50);
             }
         }
     }
@@ -128,14 +127,19 @@ public class MpanHhPerPeriodEndpointTests : IClassFixture<ApiTestFixture>
         var response = await _client.GetAsync($"/v2/mpanhhperperiod?mpan={testMpan}");
         var data = await response.Content.ReadFromJsonAsync<HhPerPeriodResponse>();
 
-        // Assert
+        // Assert - period keys are P-prefixed (P1, P2, etc.)
         var firstMc = data!.MC.First().Value;
         var firstDate = firstMc.First().Value;
-        var firstPeriod = firstDate["1"];
+        var firstPeriod = firstDate["P1"];
 
-        firstPeriod.Period.Should().Be(1);
-        firstPeriod.Hhc.Should().BeGreaterThan(0);
-        firstPeriod.Aei.Should().Be("A"); // Deterministic mode = all Actual
-        firstPeriod.QtyId.Should().Be("kWh");
+        // HHC is a string value, AEI is "A" for Actual
+        firstPeriod.HHC.Should().NotBeNull();
+        decimal.Parse(firstPeriod.HHC!, System.Globalization.CultureInfo.InvariantCulture).Should().BeGreaterThan(0);
+        firstPeriod.AEI.Should().Be("A"); // Deterministic mode = all Actual
+
+        // P49 and P50 should have null values
+        var p49 = firstDate["P49"];
+        p49.HHC.Should().BeNull();
+        p49.AEI.Should().BeNull();
     }
 }
