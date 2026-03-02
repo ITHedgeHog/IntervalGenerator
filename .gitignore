@@ -421,3 +421,4 @@ FodyWeavers.xsd
 .claude/
 src/IntervalGenerator.Api/Properties/launchSettings.json
 /.idea
+.DS_Store
